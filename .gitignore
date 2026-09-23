@@ -1,0 +1,8 @@
+# Local environment overrides. Templates (.env.example) are committed.
+.env
+.env.*
+!.env.example
+
+# OS noise
+.DS_Store
+Thumbs.db

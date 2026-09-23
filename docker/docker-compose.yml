@@ -1,0 +1,63 @@
+# Full stack orchestration. Never duplicates a service Dockerfile — it references them.
+# The `api` service will be added here once api/ exists.
+name: sparks
+
+services:
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+      target: dev
+    # Host port is configurable: other projects commonly hold 3000.
+    # Override with WEB_PORT in docker/.env (see docker/.env.example).
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    volumes:
+      - ../web:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      # Bind mounts on Windows/macOS do not deliver inotify events reliably.
+      WATCHPACK_POLLING: "true"
+      API_MODE: ${API_MODE:-mock}
+      API_BASE_URL: ${API_BASE_URL:-http://api:8000}
+      NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:-5491168692694}
+    env_file:
+      - path: ../web/.env
+        required: false
+    healthcheck:
+      # 127.0.0.1, not localhost: the dev server binds IPv4 only and `localhost`
+      # resolves to ::1 first inside the container.
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000"]
+      interval: 5s
+      timeout: 10s
+      retries: 40
+      start_period: 20s
+
+  # Refreshes web/src/styles/fonts/*.woff2. Run it only when the set of faces
+  # in §02 changes; the output is committed, so builds never touch the network.
+  fonts:
+    profiles: ["tools"]
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+      target: fonts
+    volumes:
+      - ../web:/app
+
+  # Behind a profile so the ~2GB Playwright image is never built by a plain
+  # `docker compose build`. `docker compose run --rm e2e` enables it on demand.
+  e2e:
+    profiles: ["e2e"]
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+      target: e2e
+    depends_on:
+      web:
+        condition: service_healthy
+    volumes:
+      - ../web:/app
+      - /app/node_modules
+    environment:
+      PLAYWRIGHT_BASE_URL: http://web:3000
