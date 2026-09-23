@@ -1,6 +1,39 @@
 # Progress
 
-## Estado actual · 2026-09-23 (sesión 15) — business model desde sparksinsumos.com
+## Estado actual · 2026-09-23 (sesión 19) — 005 carrito visual (T230–T236)
+
+**495 tests**, E2E **133 passed / 15 skipped** en 4 viewports. Gate typecheck +
+lint + test + build en verde.
+
+Siguiente: resto de Fase 2 (login, registro, cuenta, sets, checkout) y `api/`.
+T083 sigue bloqueada (reglas del cupón).
+
+### 005 · Carrito (T230–T236)
+
+- Página fiel al proto: h1 «Tu carrito», vacío en caja, filas con packshot
+  74px y «c/u», aside Resumen 380px.
+- Cupón visual: Aplicar no descuenta ni llama red.
+- «Finalizar compra» → `wa.me` sólo si el subtotal ≥ $30.000. Debajo, botón
+  deshabilitado. El drawer no se redibujó.
+
+## Sesión 17 · 2026-09-23 — 004 contacto visual (T220–T224)
+
+**490 tests**, E2E **121 passed / 15 skipped** en 4 viewports. Gate typecheck +
+lint + test + build en verde. `/es/contacto` · `/en/contact` ya no 404an.
+
+Siguiente: resto de Fase 2 (login, registro, cuenta, sets, checkout) y `api/`.
+T083 sigue bloqueada (reglas del cupón).
+
+### 004 · Contacto (T220–T224)
+
+- Página fiel al prototipo: 2 cols ≥900, form 2 cols ≥700, kicker oro 24px.
+- Formulario visual: 4 `TextInput` + `BoxedTextArea` + «Enviar mensaje».
+  `preventDefault` solamente; sin fetch ni toast.
+- Aside: WhatsApp / `hola@sparksparfums.com` / Franklin + panel ink `wa.me`
+  (canvas + `WhatsappDot`; el success 10px del proto no pasa axe).
+- Email del proto, no el gmail de la Tiendanube. Sin query de arrepentimiento.
+
+## Sesión 15 · 2026-09-23 — business model desde sparksinsumos.com
 
 Leída la tienda viva. `.ai/business-model.md` deja de ser TBD. Glossary,
 constitution §8–13 y `project.md` alineados. El negocio **ya tiene** catálogo

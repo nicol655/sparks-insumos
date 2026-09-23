@@ -2,15 +2,16 @@
 
 import { useTranslations } from "next-intl";
 
+import { CartAside } from "@/components/cart/cart-aside";
 import { CartLineRow } from "@/components/cart/cart-line";
-import { CartSummary } from "@/components/cart/cart-summary";
+import { BUTTON_TYPE, TOUCH_TARGET } from "@/components/primitives/button-base";
 import { Link } from "@/i18n/navigation";
 import { useCartStore } from "@/lib/cart/store";
 import { useResolvedCart } from "@/lib/cart/use-resolved-cart";
 
 /**
- * T082 · client island: the cart is in localStorage, so the page shell is RSC
- * and this block hydrates the rows.
+ * T082 / 005 · client island: the cart is in localStorage, so the page shell
+ * is RSC and this block hydrates the rows.
  */
 export function CartView() {
   const t = useTranslations();
@@ -25,12 +26,16 @@ export function CartView() {
 
   if (cart.lines.length === 0 && cart.unavailable.length === 0) {
     return (
-      <div className="flex flex-col items-start gap-6 py-10">
-        <p className="font-display text-[24px] italic">{t("cart.empty")}</p>
-        <p className="text-body-m text-text-muted">{t("cart.emptyHint")}</p>
+      <div className="border-border-hairline flex flex-col items-center gap-[18px] px-gutter py-16 text-center md:p-[70px]">
+        <p className="font-display text-text-meta text-[28px] italic">{t("cart.emptyPage")}</p>
         <Link
           href="/catalogo"
-          className="inline-flex min-h-11 items-center font-sans text-label tracking-[0.14em] uppercase underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className={[
+            BUTTON_TYPE,
+            TOUCH_TARGET,
+            "inline-flex items-center justify-center bg-ink px-[28px] py-[15px] tracking-[0.2em] text-canvas",
+            "hover:bg-accent-gold focus-visible:outline-ink",
+          ].join(" ")}
         >
           {t("cart.browse")}
         </Link>
@@ -39,12 +44,13 @@ export function CartView() {
   }
 
   return (
-    <div className="flex flex-col gap-[clamp(28px,4vw,54px)] lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+    <div className="flex flex-col gap-[clamp(28px,3.2vw,54px)] lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
       <div className="min-w-0">
-        <div className="text-eyebrow text-text-meta mb-2 hidden grid-cols-[2.4fr_1fr_1fr_0.4fr] uppercase md:grid">
+        <div className="text-text-meta mb-3 hidden grid-cols-[2.4fr_1fr_1fr_0.4fr] border-b border-ink pb-3 font-mono text-[9.5px] tracking-[0.16em] uppercase lg:grid">
           <span>{t("cart.product")}</span>
-          <span>{t("cart.quantity")}</span>
+          <span className="text-center">{t("cart.quantity")}</span>
           <span className="text-right">{t("cart.price")}</span>
+          <span />
         </div>
         <ul>
           {cart.lines.map((line) => (
@@ -67,7 +73,7 @@ export function CartView() {
           </div>
         ))}
       </div>
-      <CartSummary cart={cart} />
+      <CartAside cart={cart} />
     </div>
   );
 }

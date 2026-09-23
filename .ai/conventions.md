@@ -16,6 +16,7 @@ web/src/
 │   ├── product/           # gallery, pyramid, specs, accordion, purchase
 │   ├── cart/              # drawer, view, line, summary
 │   ├── search/            # trigger, overlay, live results
+│   ├── contact/           # page + visual-only form (004)
 │   └── icons/             # stroke SVGs from §05
 ├── lib/
 │   ├── api/               # Zod contract + CatalogRepository

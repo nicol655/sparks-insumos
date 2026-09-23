@@ -1,9 +1,8 @@
 import type { Pathname } from "@/i18n/routing";
 
 /**
- * Primary navigation of the prototype. Sets, contact and sign-in have no page
- * yet (product Phase 2) but they belong in the chrome now so the header
- * matches the design; the catch-all route 404s until those pages exist.
+ * Primary navigation of the prototype. Contact is live (004). Sets and
+ * sign-in still 404 via the catch-all until those Fase 2 pages exist.
  */
 export const NAV_KEY = {
   home: "nav.home",

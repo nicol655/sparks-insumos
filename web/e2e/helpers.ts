@@ -6,6 +6,7 @@ export const PHASE1_ROUTES = [
   { es: "/es/catalogo", en: "/en/catalogue" },
   { es: "/es/catalogo/bharara-king", en: "/en/catalogue/bharara-king" },
   { es: "/es/carrito", en: "/en/cart" },
+  { es: "/es/contacto", en: "/en/contact" },
 ] as const;
 
 export async function openStorefront(page: Page, path: string) {

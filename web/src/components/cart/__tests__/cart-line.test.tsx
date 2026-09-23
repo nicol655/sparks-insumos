@@ -78,6 +78,8 @@ describe("CartLineRow", () => {
       </ul>,
     );
 
+    expect(screen.getByText("$39.000 c/u")).toBeInTheDocument();
+
     await userEvent.click(screen.getByRole("button", { name: "Aumentar cantidad" }));
     expect(useCartStore.getState().items[0]?.quantity).toBe(3);
 

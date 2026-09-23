@@ -35,6 +35,6 @@ Monorepo por servicios, cada uno autocontenido en Docker (ver `architecture.md`)
 
 ## Status
 
-Fase 1 del storefront cerrada salvo T083 (cupón). Siguiente: spec de Fase 2
-(checkout, login, registro, cuenta, contacto) y el servicio `api/`.
-Ver `progress.md` y `specs/001-storefront-fase-1/`.
+Fase 1 del storefront cerrada salvo T083 (cupón). Contacto visual (004) está
+publicado. Siguiente: resto de Fase 2 (checkout, login, registro, cuenta, sets)
+y el servicio `api/`. Ver `progress.md` y `specs/001-storefront-fase-1/`.

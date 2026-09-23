@@ -14,6 +14,6 @@ docker compose -f docker/docker-compose.yml run --rm --no-deps web npm run verif
 docker compose -f docker/docker-compose.yml run --rm e2e
 ```
 
-Rutas de Fase 1: `/es`, `/es/catalogo`, `/es/catalogo/[slug]`, `/es/carrito` (y sus pares `/en`).
-El checkout, login, cuenta y contacto son Fase 2. Los datos salen de `CatalogRepository`
-(`API_MODE=mock` hoy).
+Rutas de Fase 1: `/es`, `/es/catalogo`, `/es/catalogo/[slug]`, `/es/carrito`, `/es/contacto`
+(y sus pares `/en`). Checkout, login y cuenta siguen en Fase 2. Los datos salen de
+`CatalogRepository` (`API_MODE=mock` hoy).

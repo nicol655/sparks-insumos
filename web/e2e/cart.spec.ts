@@ -57,10 +57,12 @@ test("the cart survives a reload and lists the order on the cart page", async ({
 
   await page.getByRole("link", { name: "Ver carrito" }).click();
   await expect(page).toHaveURL(/\/es\/carrito/);
-  await expect(page.getByRole("heading", { level: 1, name: "Carrito" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Tu carrito" })).toBeVisible();
   await expect(page.getByRole("link", { name: "King" })).toBeVisible();
+  await expect(page.getByText("Resumen")).toBeVisible();
+  await expect(page.getByText("$39.000 c/u")).toBeVisible();
 
-  const checkout = page.getByRole("link", { name: "Pedir por WhatsApp" });
+  const checkout = page.getByRole("link", { name: "Finalizar compra" });
   await expect(checkout).toHaveAttribute("href", /wa\.me\/5491168692694/);
   await expect(checkout).toHaveAttribute("href", /Bharara/);
 
@@ -79,5 +81,44 @@ test("the English cart route translates", async ({ page }) => {
 
   await page.getByRole("link", { name: "View cart" }).click();
   await expect(page).toHaveURL(/\/en\/cart/);
-  await expect(page.getByRole("heading", { level: 1, name: "Cart" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Your cart" })).toBeVisible();
+});
+
+test("the empty cart page shows the prototype box (AC-2)", async ({ page }) => {
+  await openStorefront(page, "/es/carrito");
+
+  await expect(page.getByRole("heading", { level: 1, name: "Tu carrito" })).toBeVisible();
+  await expect(page.getByText("Todavía no agregaste nada.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ver catálogo" })).toHaveAttribute(
+    "href",
+    "/es/catalogo",
+  );
+});
+
+test("Aplicar does not post or change the total (AC-5)", async ({ page }) => {
+  const posts: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST") posts.push(request.url());
+  });
+
+  await openStorefront(page, "/es/catalogo/bharara-king");
+  await page.getByRole("button", { name: "Agregar al carrito" }).click();
+  await page.getByRole("link", { name: "Ver carrito" }).click();
+
+  await page.getByLabel("Cupón").fill("VIP15");
+  await page.getByRole("button", { name: "Aplicar" }).click();
+
+  await expect(page).toHaveURL(/\/es\/carrito$/);
+  expect(posts).toEqual([]);
+  await expect(page.getByRole("link", { name: "Finalizar compra" })).toBeVisible();
+});
+
+test("a cart under $30.000 cannot close on WhatsApp (AC-7)", async ({ page }) => {
+  await openStorefront(page, "/es/catalogo/lattafa-yara");
+  await page.getByRole("button", { name: "Agregar al carrito" }).click();
+  await page.getByRole("link", { name: "Ver carrito" }).click();
+
+  await expect(page.getByRole("heading", { level: 1, name: "Tu carrito" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Finalizar compra" })).toBeDisabled();
+  await expect(page.getByRole("main").locator('a[href*="wa.me"]')).toHaveCount(0);
 });

@@ -41,7 +41,8 @@ describe("CartView", () => {
   it("shows the empty state once the store has hydrated", () => {
     renderWithIntl(<CartView />);
 
-    expect(screen.getByText("Tu carrito está vacío")).toBeInTheDocument();
+    expect(screen.getByText("Todavía no agregaste nada.")).toBeInTheDocument();
+    expect(screen.queryByText("El catálogo está a un clic.")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ver catálogo" })).toHaveAttribute("href", "/catalogo");
   });
 
@@ -58,11 +59,14 @@ describe("CartView", () => {
     });
 
     expect(screen.getAllByText("$78.000").length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: "Pedir por WhatsApp" })).toHaveAttribute(
+    expect(screen.getByText("$39.000 c/u")).toBeInTheDocument();
+    expect(screen.getByText("Resumen")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Finalizar compra" })).toHaveAttribute(
       "href",
       expect.stringMatching(/wa\.me\/5491168692694/),
     );
     expect(screen.queryByRole("link", { name: "Ver carrito" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Pedir por WhatsApp" })).not.toBeInTheDocument();
   });
 
   it("lets the shopper drop a line that sold out after it was added", async () => {

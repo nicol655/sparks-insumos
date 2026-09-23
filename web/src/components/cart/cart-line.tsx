@@ -50,26 +50,46 @@ export function CartLineRow({ line, layout }: Props) {
     </button>
   );
 
+  const pack =
+    layout === "page"
+      ? { width: "w-[74px]", ratio: "3 / 3.6", intrinsicWidth: 148 }
+      : { width: "w-[72px]", ratio: "1 / 1", intrinsicWidth: 144 };
+
   const identity = (
-    <div className="flex min-w-0 items-center gap-4">
-      <div className="w-[72px] shrink-0">
+    <div className={`flex min-w-0 items-center ${layout === "page" ? "gap-[18px]" : "gap-4"}`}>
+      <div className={`${pack.width} shrink-0`}>
         <Packshot
           alt={line.product.images.alt}
           src={line.product.images.packshot}
-          ratio="1 / 1"
-          intrinsicWidth={144}
+          ratio={pack.ratio}
+          intrinsicWidth={pack.intrinsicWidth}
         />
       </div>
-      <div className="min-w-0">
-        <p className="font-mono text-mono-meta text-text-meta tracking-[0.12em] uppercase">
+      <div className={layout === "page" ? "flex min-w-0 flex-col gap-[5px]" : "min-w-0"}>
+        <p
+          className={
+            layout === "page"
+              ? "font-mono text-[9.5px] tracking-[0.14em] text-text-meta uppercase"
+              : "font-mono text-mono-meta text-text-meta tracking-[0.12em] uppercase"
+          }
+        >
           {line.product.brand} · {line.product.size.label}
         </p>
         <Link
           href={{ pathname: "/catalogo/[slug]", params: { slug: line.slug } }}
-          className="font-display text-h4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className={
+            layout === "page"
+              ? "font-display text-[20px] leading-[1.15] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+              : "font-display text-h4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          }
         >
           {line.product.name}
         </Link>
+        {layout === "page" ? (
+          <p className="text-text-meta text-[12.5px]">
+            {formatPrice(line.unitPrice, locale)} {t("cart.each")}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -90,11 +110,13 @@ export function CartLineRow({ line, layout }: Props) {
   }
 
   return (
-    <li className="border-border-hairline grid grid-cols-1 items-center gap-4 border-b py-6 md:grid-cols-[2.4fr_1fr_1fr_0.4fr]">
+    <li className="border-border-hairline grid grid-cols-1 items-center gap-3 border-b py-[22px] md:grid-cols-[2.4fr_1fr_1fr_0.4fr]">
       {identity}
-      <div>{stepper}</div>
-      <p className="font-display text-h4 md:text-right">{price}</p>
-      <div className="md:justify-self-end">{removeButton}</div>
+      <div className="mt-1 flex items-center justify-between gap-3 md:mt-0 md:contents">
+        <div className="md:justify-self-center">{stepper}</div>
+        <p className="text-[16px] md:text-right">{price}</p>
+        <div className="md:justify-self-end">{removeButton}</div>
+      </div>
     </li>
   );
 }

@@ -72,8 +72,10 @@ envuelva la ficha.
 Agregar (`useAddToCart`) guarda una referencia, abre el overlay `cart` y encola un toast.
 `resolveCart()` une esas referencias con el producto vivo en el cliente (`useResolvedCart`):
 recalcula precios, recorta cantidades al stock y reporta lo agotado. El drawer
-(`cart-drawer.tsx`, 420px, z-101) y `/carrito` (`CartView`) leen el mismo store; el
-contador del header espera `hydrated` para no desajustar el HTML del servidor.
+(`cart-drawer.tsx`, 420px, z-101) y `/carrito` (`CartView` + `CartAside`) leen el
+mismo store; el contador del header espera `hydrated` para no desajustar el HTML
+del servidor. La página (005) pinta el aside del prototipo; el drawer conserva
+el resumen compacto. El `wa.me` de pedido no se arma bajo $30.000.
 
 ### Hero (003)
 
@@ -104,6 +106,14 @@ Las marcas las genera `web/scripts/write-brand-images.mjs`; un test comprueba lo
 
 `title` de Next es un string plano. **No** usar `title.template` con el placeholder `{page}`
 de next-intl — Next exige `%s` y un template mal formado tira `generateMetadata`.
+
+### Contacto (004)
+
+`/contacto` · `/contact` reclama la ruta que el chrome ya enlazaba. Página
+cliente (`contact-page.tsx`) + isla de formulario que solo hace
+`preventDefault`. Aside con WhatsApp / email del proto / Franklin y panel
+ink a `wa.me` (`whatsapp.general`). Sin POST ni toast. Kicker oro ≥24px
+(RNF-2).
 
 ### Cierre de compra
 
