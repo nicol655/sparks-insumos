@@ -1,6 +1,24 @@
 # Progress
 
-## Estado actual · 2026-09-23 (sesión 14) — 003 hero + marquesina (T210–T213)
+## Estado actual · 2026-09-23 (sesión 15) — business model desde sparksinsumos.com
+
+Leída la tienda viva. `.ai/business-model.md` deja de ser TBD. Glossary,
+constitution §8–13 y `project.md` alineados. El negocio **ya tiene** catálogo
+Tiendanube; `web/` lo reemplaza.
+
+Siguiente: spec de Fase 2 y `api/`. Confirmar con el negocio el mínimo
+($30.000 vs $50.000) y el año («2019» vs «hace 3 años»). T083 sigue bloqueada.
+
+### Hechos que atan producto
+
+- Piso de carrito **$30.000** sin envío. 5% / 10% desde $100.000 / $300.000.
+- Pago vivo: efectivo o transferencia. Envío Correo Argentino / Via Cargo a
+  cargo del comprador. Franklin. WhatsApp `5491168692694`.
+- CUIT `20-95827720-3`. Defensa = formulario gob.ar. Arrepentimiento =
+  `/contacto/?order_cancellation_without_id=true` en el dominio vivo.
+- Catálogo real = 4 familias; Fase 1 del storefront = sólo perfume.
+
+## Sesión 14 · 2026-09-23 — 003 hero + marquesina (T210–T213)
 
 **483 tests**, E2E **105 passed / 15 skipped** en 4 viewports. Gate typecheck + lint +
 test + build en verde.

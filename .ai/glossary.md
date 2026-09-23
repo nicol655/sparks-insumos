@@ -11,3 +11,13 @@ Domain terms as the storefront uses them. Spanish is the default locale (`es-AR`
 - **Chip** — rounded-pill control (`--radius-chip`). Toggle filters use `aria-pressed`; a combination that would empty the grid becomes a 40% `span`, not a link (RF-2).
 - **Overlay** — the single UI slot for cart drawer, search, mobile menu, or filter drawer. Opening one closes the other (`useUiStore`).
 - **Canvas / ink** — the two ground colors of the system: warm bone (`#F5F1EA`) and near-black (`#14100E`). Gold (`accent-gold`) is an accent, not body text.
+- **Sparks Insumos** — legal / storefront name on [sparksinsumos.com](https://sparksinsumos.com/). CUIT `20-95827720-3`. The new UI brand is **Sparks Parfums**; same business.
+- **Sparks Mayorista** — how the live home and Quiénes Somos address the buyer (revendedoras y negocios). Minimum order and volume discounts apply to this motion.
+- **Insumo** — a unit sold for resale (perfume, make-up, skincare, accessory), not a finished retail experience. Makeup ships in **tonos surtidos**.
+- **Inspiración / réplica 1:1** — live-catalog labels for fragrances that evoke a designer scent. Not the designer’s own juice. Do not drop the qualifier in copy.
+- **Mínimo de compra** — checkout floor **$30.000 ARS** excluding shipping (Tiendanube cart rule and home). Quiénes Somos still says $50.000; that page is stale relative to the cart.
+- **Descuento por volumen** — automatic 5% from $100.000 and 10% from $300.000. Not a typed coupon. Separate from T083.
+- **Botón de arrepentimiento** — Argentine cooling-off control. Live destination: `/contacto/?order_cancellation_without_id=true` on sparksinsumos.com.
+- **Defensa del consumidor** — live link to the national form: `https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario`.
+- **Franklin** — published address / showroom (CABA). Pickup and “retiro” copy refer here, not Palermo.
+- **Via Cargo** — the second shipper next to Correo Argentino. Buyer pays; quote by size and weight.

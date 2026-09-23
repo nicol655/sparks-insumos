@@ -2,12 +2,15 @@
 
 ## What
 
-**Sparks Parfums** — tienda de e-commerce de perfumería de alta concentración (fragancias árabes,
-nicho e inspiraciones de alta duración) en Buenos Aires.
+**Sparks Parfums** — storefront nuevo de **Sparks Insumos** (CUIT 20-95827720-3),
+mayorista de insumos de belleza en Buenos Aires (Franklin). La tienda viva es
+[sparksinsumos.com](https://sparksinsumos.com/) (Tiendanube): perfume, maquillaje,
+skincare y accesorios, piso $30.000, 5/10% por volumen, envío a cargo del
+comprador, pago en efectivo o transferencia, más WhatsApp `5491168692694`.
 
-Hoy el negocio vende por WhatsApp y no tiene catálogo navegable. El sitio existe para que el
-cliente pueda explorar por familia olfativa, comparar precios y armar un pedido antes de escribir —
-sin quitar a WhatsApp del centro: la compra se cierra ahí.
+Este repo reemplaza esa Tiendanube. Fase 1 recorta a **perfumería** (árabe, nicho
+e inspiraciones) con cierre por WhatsApp — sin pasarela. El modelo completo
+(maquillaje, mínimo, descuentos, legales) está en `business-model.md`.
 
 Dirección de diseño: editorial de lujo silencioso. Tinta casi negra sobre hueso cálido, serif
 display, líneas de 1px en lugar de sombras, cero radios salvo en chips. Bilingüe es-AR / en.
