@@ -1,0 +1,230 @@
+{
+  "metadata": {
+    "title": "Sparks Parfums",
+    "titleTemplate": "{page} · Sparks Parfums",
+    "description": "High-concentration perfumery in Buenos Aires. Arabian, niche and long-lasting inspired fragrances."
+  },
+  "brand": {
+    "name": "SPARKS",
+    "tagline": "PARFUMS · BUENOS AIRES",
+    "home": "Sparks Parfums — home"
+  },
+  "common": {
+    "skipToContent": "Skip to content",
+    "close": "Close",
+    "loading": "Loading",
+    "outOfStock": "Out of stock"
+  },
+  "announcement": {
+    "discountLow": "5% off over $100,000",
+    "discountHigh": "10% off over $300,000",
+    "shipping": "We ship nationwide"
+  },
+  "nav": {
+    "label": "Primary navigation",
+    "home": "Home",
+    "catalog": "Catalogue",
+    "sets": "Sets",
+    "contact": "Contact"
+  },
+  "header": {
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menu": "Menu",
+    "search": "Search",
+    "signIn": "Sign in",
+    "cart": "Cart",
+    "cartCount": "{count, plural, =0 {Cart is empty} one {# item in the cart} other {# items in the cart}}",
+    "languageLabel": "Language",
+    "languageSwitch": "View the site in {language}"
+  },
+  "search": {
+    "title": "Search",
+    "close": "Close search",
+    "placeholder": "Brand, name or note",
+    "suggestions": "Suggestions",
+    "results": "Search results",
+    "empty": "Nothing matches that"
+  },
+  "locales": {
+    "es": "Spanish",
+    "en": "English",
+    "esShort": "ES",
+    "enShort": "EN"
+  },
+  "families": {
+    "ambar-especias": "Amber & spices",
+    "florales": "Floral",
+    "gourmand": "Gourmand",
+    "maderas": "Woody"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "High-concentration perfumery — since 2019",
+      "titleLead": "A perfume is not seen.",
+      "titleEm": "It is remembered.",
+      "body": "A curated selection of Arabian, niche and long-lasting inspired fragrances. Try them one by one before heading into the catalogue.",
+      "ctaCatalog": "View catalogue",
+      "ctaWhatsapp": "Ask on WhatsApp",
+      "imageCaption": "Eau de parfum · 100 ml"
+    },
+    "stats": {
+      "references": "References in stock",
+      "referencesValue": "{count}+",
+      "dispatch": "Dispatch",
+      "dispatchValue": "24 h",
+      "rating": "Rating",
+      "ratingValue": "4.9"
+    },
+    "families": {
+      "title": "By olfactive family",
+      "note": "Choose by how you want to be remembered, not by the label"
+    },
+    "featured": {
+      "title": "Featured",
+      "note": "What people are taking home"
+    },
+    "services": {
+      "shippingTitle": "We ship nationwide",
+      "shippingBody": "Dispatched within 24 business hours. Cost is confirmed on WhatsApp by destination and volume.",
+      "adviceTitle": "Real advice",
+      "adviceBody": "Tell us what you are looking for: we will send a short shortlist, not the whole catalogue.",
+      "returnsTitle": "Simple exchanges",
+      "returnsBody": "If it is not what you expected, we will sort it. Full rules sit on each product page."
+    },
+    "club": {
+      "kicker": "Sparks Club",
+      "title": "Sign up and shop differently.",
+      "body": "Account holders get member pricing, early access to drops and a permanent welcome coupon.",
+      "ctaCreate": "Create account",
+      "ctaSignIn": "I have an account",
+      "memberTitle": "Member price",
+      "memberBody": "Permanent 5% off the whole catalogue.",
+      "earlyTitle": "Early access",
+      "earlyBody": "48 h head start on every restock.",
+      "vipTitle": "VIP15 coupon",
+      "vipBody": "Stackable welcome coupon.",
+      "trackTitle": "Tracking",
+      "trackBody": "Orders and shipments in one place."
+    },
+    "commerce": {
+      "shippingKicker": "Shipping",
+      "shippingTitle": "Nationwide",
+      "shippingBody": "Correo Argentino and freight, quoted by size and weight.",
+      "paymentsKicker": "Payments",
+      "paymentsTitle": "Card, transfer or cash",
+      "paymentsBody": "Up to 3 interest-free instalments. Pickup in Franklin, CABA.",
+      "wholesaleKicker": "Wholesale",
+      "wholesaleTitle": "Volume pricing",
+      "wholesaleBody": "Automatic discounts from $100,000."
+    }
+  },
+  "catalog": {
+    "add": "Add",
+    "viewProduct": "View {name}",
+    "title": "Catalogue",
+    "count": "{count, plural, one {# perfume} other {# perfumes}}",
+    "results": "Catalogue results",
+    "filters": "Filters",
+    "closeFilters": "Close filters",
+    "families": "Family",
+    "brands": "Brand",
+    "sizes": "Size",
+    "price": "Price",
+    "sort": "Sort",
+    "sortRelevance": "Relevance",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "sortNameAsc": "Name A–Z",
+    "sizeLabel": "{ml} ml",
+    "removeFilter": "Remove filter: {label}",
+    "clearFilters": "Clear filters",
+    "emptyTitle": "Nothing with that combination",
+    "emptyBody": "Try dropping a filter, or write to us and we will put a shortlist together by hand.",
+    "emptyCta": "Ask on WhatsApp",
+    "errorTitle": "We couldn't load the catalogue",
+    "errorBody": "Try again in a moment. If it keeps failing, write to us.",
+    "retry": "Try again",
+    "priceLow": "Up to {price}",
+    "priceMid": "{min} – {max}",
+    "priceHigh": "From {price}"
+  },
+  "product": {
+    "metaTitle": "{brand} {name}",
+    "gallery": "Gallery of {name}",
+    "thumbnail": "View {n} of {name}",
+    "addToCart": "Add to cart",
+    "inStock": "In stock",
+    "askStock": "Ask about stock on WhatsApp",
+    "quantity": "Quantity",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "pyramid": "Olfactive pyramid",
+    "notesTop": "Top",
+    "notesHeart": "Heart",
+    "notesBase": "Base",
+    "specs": "Specifications",
+    "family": "Family",
+    "concentration": "Concentration",
+    "size": "Size",
+    "description": "Description",
+    "shipping": "Shipping",
+    "shippingBody": "Dispatched within 24 business hours nationwide. Cost is confirmed on WhatsApp by destination and volume.",
+    "returns": "Returns",
+    "returnsBody": "If it is not what you expected, we will sort it. Write to us and we will arrange the exchange.",
+    "related": "You may also like",
+    "relatedList": "Related products",
+    "errorTitle": "We couldn't load this perfume",
+    "errorBody": "Try again in a moment. If it keeps failing, write to us."
+  },
+  "notFound": {
+    "title": "We couldn't find this page",
+    "body": "The link may be broken, or the product may no longer be in the catalogue.",
+    "backHome": "Back to home"
+  },
+  "footer": {
+    "blurb": "High-concentration perfumery and selected cosmetics. Pickup in Franklin, shipping nationwide.",
+    "shop": "Shop",
+    "account": "Account",
+    "help": "Help",
+    "cart": "Your cart",
+    "orders": "Your orders",
+    "createAccount": "Create account",
+    "shipping": "Shipping and pickup",
+    "returns": "Returns and exchanges",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "facebook": "Facebook",
+    "copyright": "© {year} Sparks Parfums · Buenos Aires, Argentina",
+    "legal": "Consumer protection · Withdrawal button"
+  },
+  "whatsapp": {
+    "brand": "WhatsApp",
+    "floatingLabel": "Ask on WhatsApp",
+    "general": "Hi Sparks, I'd like to ask a question.",
+    "catalogEmpty": "Hi Sparks, I was looking for a combination in the catalogue and nothing came up. Can you help?",
+    "product": "Hi Sparks, I'm interested in {brand} {name} ({size}). Is it available?",
+    "stock": "Hi Sparks, when is {brand} {name} ({size}) back in stock?",
+    "orderIntro": "Hi Sparks, I'd like to place this order:",
+    "orderLine": "{quantity}x {brand} {name} ({size}) — {price}",
+    "orderTotal": "Total: {total}"
+  },
+  "cart": {
+    "title": "Cart",
+    "close": "Close cart",
+    "empty": "Your cart is empty",
+    "emptyHint": "The catalogue is one click away.",
+    "browse": "View catalogue",
+    "viewCart": "View cart",
+    "checkout": "Order on WhatsApp",
+    "subtotal": "Subtotal",
+    "added": "Added to cart",
+    "remove": "Remove {name}",
+    "product": "Product",
+    "quantity": "Quantity",
+    "price": "Price",
+    "unavailable": "No longer available",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity"
+  }
+}

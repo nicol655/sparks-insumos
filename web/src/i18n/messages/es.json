@@ -1,0 +1,230 @@
+{
+  "metadata": {
+    "title": "Sparks Parfums",
+    "titleTemplate": "{page} · Sparks Parfums",
+    "description": "Perfumería de alta concentración en Buenos Aires. Fragancias árabes, nicho e inspiraciones de larga duración."
+  },
+  "brand": {
+    "name": "SPARKS",
+    "tagline": "PARFUMS · BUENOS AIRES",
+    "home": "Sparks Parfums — inicio"
+  },
+  "common": {
+    "skipToContent": "Saltar al contenido",
+    "close": "Cerrar",
+    "loading": "Cargando",
+    "outOfStock": "Sin stock"
+  },
+  "announcement": {
+    "discountLow": "5% OFF desde $100.000",
+    "discountHigh": "10% OFF desde $300.000",
+    "shipping": "Envíos a todo el país"
+  },
+  "nav": {
+    "label": "Navegación principal",
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "sets": "Sets",
+    "contact": "Contacto"
+  },
+  "header": {
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "menu": "Menú",
+    "search": "Buscar",
+    "signIn": "Ingresar",
+    "cart": "Carrito",
+    "cartCount": "{count, plural, =0 {Carrito vacío} one {# producto en el carrito} other {# productos en el carrito}}",
+    "languageLabel": "Idioma",
+    "languageSwitch": "Ver el sitio en {language}"
+  },
+  "search": {
+    "title": "Buscar",
+    "close": "Cerrar búsqueda",
+    "placeholder": "Marca, nombre o nota",
+    "suggestions": "Sugerencias",
+    "results": "Resultados de búsqueda",
+    "empty": "Nada con ese término"
+  },
+  "locales": {
+    "es": "Español",
+    "en": "Inglés",
+    "esShort": "ES",
+    "enShort": "EN"
+  },
+  "families": {
+    "ambar-especias": "Ámbar & especias",
+    "florales": "Florales",
+    "gourmand": "Gourmand",
+    "maderas": "Maderas"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Perfumería de alta concentración — desde 2019",
+      "titleLead": "Un perfume no se ve.",
+      "titleEm": "Se recuerda.",
+      "body": "Selección curada de fragancias árabes, nicho e inspiraciones de alta duración. Probalas una por una antes de entrar al catálogo.",
+      "ctaCatalog": "Ver catálogo",
+      "ctaWhatsapp": "Consultar por WhatsApp",
+      "imageCaption": "Eau de parfum · 100 ml"
+    },
+    "stats": {
+      "references": "Referencias en stock",
+      "referencesValue": "{count}+",
+      "dispatch": "Despacho",
+      "dispatchValue": "24 h",
+      "rating": "Valoración",
+      "ratingValue": "4.9"
+    },
+    "families": {
+      "title": "Por familia olfativa",
+      "note": "Elegí por cómo querés que te recuerden, no por la etiqueta"
+    },
+    "featured": {
+      "title": "Destacados",
+      "note": "Lo que más se está llevando"
+    },
+    "services": {
+      "shippingTitle": "Envíos a todo el país",
+      "shippingBody": "Despacho en 24 h hábiles. El costo se confirma por WhatsApp según destino y volumen.",
+      "adviceTitle": "Asesoramiento real",
+      "adviceBody": "Escribinos con lo que buscás: te armamos una terna corta, no un catálogo entero.",
+      "returnsTitle": "Cambios simples",
+      "returnsBody": "Si no es lo que esperabas, lo resolvemos. Las reglas completas van en cada ficha."
+    },
+    "club": {
+      "kicker": "Sparks Club",
+      "title": "Registrate y comprá distinto.",
+      "body": "Los clientes con cuenta acceden a precio de socio, preventas y a un cupón permanente de bienvenida.",
+      "ctaCreate": "Crear cuenta",
+      "ctaSignIn": "Ya tengo cuenta",
+      "memberTitle": "Precio de socio",
+      "memberBody": "5% off permanente en todo el catálogo.",
+      "earlyTitle": "Preventas",
+      "earlyBody": "Acceso 48 h antes a cada ingreso.",
+      "vipTitle": "Cupón VIP15",
+      "vipBody": "Cupón de bienvenida acumulable.",
+      "trackTitle": "Seguimiento",
+      "trackBody": "Historial de pedidos y envíos en un lugar."
+    },
+    "commerce": {
+      "shippingKicker": "Envíos",
+      "shippingTitle": "Todo el país",
+      "shippingBody": "Correo Argentino y cargo, a cotizar según tamaño y peso.",
+      "paymentsKicker": "Pagos",
+      "paymentsTitle": "Tarjeta, transferencia o efectivo",
+      "paymentsBody": "Hasta 3 cuotas sin interés. Retiro en Franklin, CABA.",
+      "wholesaleKicker": "Mayorista",
+      "wholesaleTitle": "Precio por cantidad",
+      "wholesaleBody": "Desde $100.000 se aplican descuentos automáticos."
+    }
+  },
+  "catalog": {
+    "add": "Agregar",
+    "viewProduct": "Ver {name}",
+    "title": "Catálogo",
+    "count": "{count, plural, one {# perfume} other {# perfumes}}",
+    "results": "Resultados del catálogo",
+    "filters": "Filtros",
+    "closeFilters": "Cerrar filtros",
+    "families": "Familia",
+    "brands": "Marca",
+    "sizes": "Tamaño",
+    "price": "Precio",
+    "sort": "Ordenar",
+    "sortRelevance": "Relevancia",
+    "sortPriceAsc": "Precio: menor a mayor",
+    "sortPriceDesc": "Precio: mayor a menor",
+    "sortNameAsc": "Nombre A–Z",
+    "sizeLabel": "{ml} ml",
+    "removeFilter": "Quitar filtro: {label}",
+    "clearFilters": "Quitar filtros",
+    "emptyTitle": "Nada con esa combinación",
+    "emptyBody": "Probá sacando un filtro o escribinos y armamos una terna a mano.",
+    "emptyCta": "Consultar por WhatsApp",
+    "errorTitle": "No pudimos cargar el catálogo",
+    "errorBody": "Reintentá en un momento. Si sigue fallando, escribinos.",
+    "retry": "Reintentar",
+    "priceLow": "Hasta {price}",
+    "priceMid": "{min} – {max}",
+    "priceHigh": "Desde {price}"
+  },
+  "product": {
+    "metaTitle": "{brand} {name}",
+    "gallery": "Galería de {name}",
+    "thumbnail": "Vista {n} de {name}",
+    "addToCart": "Agregar al carrito",
+    "inStock": "En stock",
+    "askStock": "Consultar stock por WhatsApp",
+    "quantity": "Cantidad",
+    "decrease": "Disminuir cantidad",
+    "increase": "Aumentar cantidad",
+    "pyramid": "Pirámide olfativa",
+    "notesTop": "Salida",
+    "notesHeart": "Corazón",
+    "notesBase": "Fondo",
+    "specs": "Ficha técnica",
+    "family": "Familia",
+    "concentration": "Concentración",
+    "size": "Tamaño",
+    "description": "Descripción",
+    "shipping": "Envíos",
+    "shippingBody": "Despacho en 24 h hábiles a todo el país. El costo se confirma por WhatsApp según destino y volumen.",
+    "returns": "Devoluciones",
+    "returnsBody": "Si no es lo que esperabas, lo resolvemos. Escribinos y coordinamos el cambio.",
+    "related": "También te puede gustar",
+    "relatedList": "Productos relacionados",
+    "errorTitle": "No pudimos cargar este perfume",
+    "errorBody": "Reintentá en un momento. Si sigue fallando, escribinos."
+  },
+  "notFound": {
+    "title": "No encontramos esta página",
+    "body": "Puede que el enlace esté roto o que el producto ya no esté en el catálogo.",
+    "backHome": "Volver al inicio"
+  },
+  "footer": {
+    "blurb": "Perfumería de alta concentración y cosmética seleccionada. Retiro en Franklin, envíos a todo el país.",
+    "shop": "Tienda",
+    "account": "Cuenta",
+    "help": "Ayuda",
+    "cart": "Tu carrito",
+    "orders": "Tus pedidos",
+    "createAccount": "Crear cuenta",
+    "shipping": "Envíos y retiro",
+    "returns": "Cambios y devoluciones",
+    "instagram": "Instagram",
+    "tiktok": "TikTok",
+    "facebook": "Facebook",
+    "copyright": "© {year} Sparks Parfums · Buenos Aires, Argentina",
+    "legal": "Defensa de consumidores · Botón de arrepentimiento"
+  },
+  "whatsapp": {
+    "brand": "WhatsApp",
+    "floatingLabel": "Consultar por WhatsApp",
+    "general": "Hola Sparks, quería hacer una consulta.",
+    "catalogEmpty": "Hola Sparks, buscaba una combinación en el catálogo y no encontré nada. ¿Me ayudan?",
+    "product": "Hola Sparks, me interesa {brand} {name} ({size}). ¿Está disponible?",
+    "stock": "Hola Sparks, ¿cuándo vuelve el stock de {brand} {name} ({size})?",
+    "orderIntro": "Hola Sparks, quiero hacer este pedido:",
+    "orderLine": "{quantity}x {brand} {name} ({size}) — {price}",
+    "orderTotal": "Total: {total}"
+  },
+  "cart": {
+    "title": "Carrito",
+    "close": "Cerrar carrito",
+    "empty": "Tu carrito está vacío",
+    "emptyHint": "El catálogo está a un clic.",
+    "browse": "Ver catálogo",
+    "viewCart": "Ver carrito",
+    "checkout": "Pedir por WhatsApp",
+    "subtotal": "Subtotal",
+    "added": "Agregado al carrito",
+    "remove": "Quitar {name}",
+    "product": "Producto",
+    "quantity": "Cantidad",
+    "price": "Precio",
+    "unavailable": "Ya no está disponible",
+    "decrease": "Disminuir cantidad",
+    "increase": "Aumentar cantidad"
+  }
+}

@@ -1,0 +1,182 @@
+/**
+ * Design tokens · Sparks Parfums
+ *
+ * Source of truth: "Tienda perfumes diseño web.pdf" v1.0 (2026).
+ * Every value here is verified against that document by the suites in
+ * src/styles/__tests__. Do not change a value without updating the document
+ * first — the tests will fail, and that is the point.
+ */
+
+@theme {
+  /* ---------------------------------------------------------------------
+   * §01 · Colour
+   *
+   * "La paleta es deliberadamente corta (...) No agregar colores nuevos sin
+   * aprobación de diseño." Tailwind's default palette is cleared so that
+   * utilities like `bg-red-500` simply do not exist.
+   * ------------------------------------------------------------------- */
+  --color-*: initial;
+
+  /* Primarios */
+  --color-ink: #14100e;
+  --color-canvas: #f5f1ea;
+  --color-accent-gold: #8a6b32;
+
+  /* Secundarios y superficies */
+  --color-surface-raised: #fbf9f5;
+  --color-ink-raised: #1e1915;
+  --color-placeholder-a: #ede7dc;
+  --color-placeholder-b: #f2ede4;
+
+  /* Neutros de texto y borde */
+  --color-text-muted: #3e3731;
+  --color-text-meta: #6f665a;
+  --color-border-hairline: rgb(20 16 14 / 0.12);
+  --color-border-strong: rgb(20 16 14 / 0.28);
+  --color-border-on-ink: rgb(245 241 234 / 0.16);
+
+  /* Semánticos */
+  --color-success: #4ca455;
+  --color-danger: #b4443a;
+  --color-whatsapp: var(--color-success);
+  --color-warning: var(--color-accent-gold);
+  --color-info: var(--color-text-muted);
+
+  /* Estado de componente (§03): fondo del botón primario al presionar. */
+  --color-accent-gold-pressed: #6f5527;
+
+  /* ---------------------------------------------------------------------
+   * §02 · Font families
+   *
+   * The var() on the left of each list is injected by next/font (see
+   * src/styles/fonts.ts); the rest is the fallback stack from the document.
+   * ------------------------------------------------------------------- */
+  --font-*: initial;
+  --font-display: var(--font-cormorant), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-jost), "Helvetica Neue", Helvetica, sans-serif;
+  --font-mono: var(--font-plex-mono), "SF Mono", Menlo, monospace;
+
+  /* ---------------------------------------------------------------------
+   * §02 · Type scale
+   *
+   * Fluid by design: the minimum of each clamp is the size at a 360px
+   * viewport and the maximum the size from 1440px up. The preferred term is
+   * the straight line between those two points — see tokens.scale.test.ts.
+   * ------------------------------------------------------------------- */
+  --text-*: initial;
+
+  /* Titular de portada · 40 → 104px */
+  --text-h1-hero: clamp(2.5rem, 1.1667rem + 5.9259vw, 6.5rem);
+  --text-h1-hero--line-height: 0.92;
+  --text-h1-hero--letter-spacing: -0.02em;
+
+  /* Título de catálogo, carrito, checkout, cuenta · 32 → 52px */
+  --text-h1-page: clamp(2rem, 1.5833rem + 1.8519vw, 3.25rem);
+  --text-h1-page--line-height: 1.02;
+  --text-h1-page--letter-spacing: 0;
+
+  /* Encabezado de sección · 30 → 46px */
+  --text-h2: clamp(1.875rem, 1.5417rem + 1.4815vw, 2.875rem);
+  --text-h2--line-height: 1.05;
+  --text-h2--letter-spacing: -0.01em;
+
+  /* Tarjeta de familia, panel de club · 24 → 32px */
+  --text-h3: clamp(1.5rem, 1.3333rem + 0.7407vw, 2rem);
+  --text-h3--line-height: 1.05;
+  --text-h3--letter-spacing: 0;
+
+  /* Nombre de producto en tarjeta, notas de pirámide · 19 → 21px */
+  --text-h4: clamp(1.1875rem, 1.1458rem + 0.1852vw, 1.3125rem);
+  --text-h4--line-height: 1.15;
+  --text-h4--letter-spacing: 0;
+
+  /* Título de beneficio, línea de carrito, contacto · 18 → 24px */
+  --text-h5: clamp(1.125rem, 1rem + 0.5556vw, 1.5rem);
+  --text-h5--line-height: 1.2;
+  --text-h5--letter-spacing: 0;
+
+  /* H6 · grupo de filtros, leyenda de formulario · 11 → 12px · mayúsculas */
+  --text-eyebrow: clamp(0.6875rem, 0.6667rem + 0.0926vw, 0.75rem);
+  --text-eyebrow--line-height: 1.3;
+  --text-eyebrow--letter-spacing: 0.16em;
+
+  /* Bajada de hero y de sección · 15 → 16px */
+  --text-body-l: clamp(0.9375rem, 0.9167rem + 0.0926vw, 1rem);
+  --text-body-l--line-height: 1.65;
+  --text-body-l--letter-spacing: 0;
+
+  /* Descripciones, texto de ficha, ayudas · 13.5 → 14.5px */
+  --text-body-m: clamp(0.8438rem, 0.8229rem + 0.0926vw, 0.9063rem);
+  --text-body-m--line-height: 1.7;
+  --text-body-m--letter-spacing: 0;
+
+  /* Notas al pie, avisos de envío y mínimos · 11.5 → 12.5px */
+  --text-body-s: clamp(0.7188rem, 0.6979rem + 0.0926vw, 0.7813rem);
+  --text-body-s--line-height: 1.6;
+  --text-body-s--letter-spacing: 0;
+
+  /* Navegación, botones, chips, pestañas · 10 → 12px.
+     Tracking base 0.14em; §03 lo sube hasta 0.20em en el botón primario. */
+  --text-label: clamp(0.625rem, 0.5833rem + 0.1852vw, 0.75rem);
+  --text-label--line-height: 1;
+  --text-label--letter-spacing: 0.14em;
+
+  /* Kickers, SKU, contadores, encabezados de tabla · 9 → 11px.
+     Tracking base 0.12em; §03 lo sube hasta 0.22em en la barra de anuncio. */
+  --text-mono-meta: clamp(0.5625rem, 0.5208rem + 0.1852vw, 0.6875rem);
+  --text-mono-meta--line-height: 1.5;
+  --text-mono-meta--letter-spacing: 0.12em;
+
+  /* Precio en ficha de producto · 28 → 40px */
+  --text-price: clamp(1.75rem, 1.5rem + 1.1111vw, 2.5rem);
+  --text-price--line-height: 1;
+  --text-price--letter-spacing: 0;
+
+  /* Valor tipeado en formularios. No es fluido: los 16px de móvil son un
+     umbral para evitar el zoom automático de iOS, no una rampa. */
+  --text-input: 0.9063rem;
+  --text-input--line-height: 1.3;
+  --text-input--letter-spacing: 0;
+  --text-input-mobile: 1rem;
+  --text-input-mobile--line-height: 1.3;
+  --text-input-mobile--letter-spacing: 0;
+
+  /* ---------------------------------------------------------------------
+   * §04 · Spacing, breakpoints and radius
+   * ------------------------------------------------------------------- */
+
+  /* Base 4px scale: p-1 = 4px, p-2 = 8px, … covers space-1 through space-5. */
+  --spacing: 0.25rem;
+
+  /* Values that fall outside the 4px scale. */
+  --spacing-gutter: clamp(1.25rem, 4.4vw, 4rem);
+  --spacing-section: clamp(3rem, 2.25rem + 3.3333vw, 5.25rem);
+  --spacing-grid-x: 1.625rem;
+  --spacing-grid-y: 1.875rem;
+
+  --container-root: 135rem;
+
+  /* The document defines six thresholds of its own; Tailwind's are replaced,
+     not extended, so the two sets cannot drift apart. */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 560px;
+  --breakpoint-md: 700px;
+  --breakpoint-lg: 900px;
+  --breakpoint-xl: 1140px;
+  --breakpoint-2xl: 1440px;
+  --breakpoint-3xl: 2160px;
+
+  /* "Todo es rectangular. Excepción única: chips y punto indicador." */
+  --radius-*: initial;
+  --radius-chip: 999px;
+
+  /* ---------------------------------------------------------------------
+   * §06 · Motion defaults
+   *
+   * "Micro-interacciones 180ms ease (color, borde, opacidad)." Every
+   * `transition-*` utility inherits this unless it overrides it explicitly.
+   * Keyframes live in animations.css.
+   * ------------------------------------------------------------------- */
+  --default-transition-duration: 180ms;
+  --default-transition-timing-function: ease;
+}

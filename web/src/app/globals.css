@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "../styles/theme.css";
+@import "../styles/animations.css";
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* §02 · "los párrafos llevan text-wrap: pretty y un ancho máximo de 44–66ch" */
+p {
+  text-wrap: pretty;
+}

@@ -1,0 +1,24 @@
+# Runs the storefront on its own. For the full stack use docker/docker-compose.yml.
+name: sparks-web
+
+services:
+  web:
+    build:
+      context: .
+      target: dev
+    # Host port is configurable: other projects commonly hold 3000.
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      # Bind mounts on Windows/macOS do not deliver inotify events reliably.
+      WATCHPACK_POLLING: "true"
+      API_MODE: ${API_MODE:-mock}
+      API_BASE_URL: ${API_BASE_URL:-http://api:8000}
+      NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:-5491168692694}
+    env_file:
+      - path: .env
+        required: false
