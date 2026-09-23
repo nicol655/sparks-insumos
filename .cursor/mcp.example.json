@@ -1,0 +1,29 @@
+{
+  "_readme": [
+    "Project-level MCP servers. Copy this file to .cursor/mcp.json to activate.",
+    "Cursor merges project (.cursor/mcp.json) and user (~/.cursor/mcp.json) servers.",
+    "Two transport styles: remote { url } (usually with OAuth in Cursor) or local",
+    "{ command, args, env } that Cursor spawns. Reference secrets via ${env:VAR};",
+    "never hardcode tokens. Remove servers you don't use. See README 'MCP servers'.",
+    "The _readme and _comment keys are ignored by Cursor."
+  ],
+  "mcpServers": {
+    "atlassian": {
+      "_comment": "Jira + Confluence via Atlassian's official Rovo MCP (remote, OAuth in Cursor). Adjust the URL to the current Atlassian MCP endpoint.",
+      "url": "https://mcp.atlassian.com/v1/sse"
+    },
+    "stitch": {
+      "_comment": "Stitch (design). Replace the package/URL with the real Stitch MCP server; supply keys via env, not literals.",
+      "command": "npx",
+      "args": ["-y", "<stitch-mcp-package>"],
+      "env": {
+        "STITCH_API_KEY": "${env:STITCH_API_KEY}"
+      }
+    },
+    "filesystem-example": {
+      "_comment": "Example of a local stdio server. Safe to delete.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    }
+  }
+}

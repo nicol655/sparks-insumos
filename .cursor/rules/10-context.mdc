@@ -1,0 +1,34 @@
+---
+description: How to read and persist shared project context (the .ai memory bank)
+alwaysApply: true
+---
+
+# Shared Context (memory bank)
+
+LLMs have no memory between chats. This project's memory lives in `.ai/`, is
+committed to git, and is shared by every contributor and every agent. Treat it
+as the source of truth — read it in, write it back.
+
+## At the START of a task
+
+- Read `.ai/README.md` for the map, then the files relevant to the task
+  (`project.md`, `architecture.md`, `stack.md`, `conventions.md`, `progress.md`,
+  the active `specs/`, and `decisions/`).
+- If context and code disagree, the code is truth for *what is*, `.ai/` is truth
+  for *what and why we intend*. Flag the drift and reconcile it.
+
+## At the END of a task (before you stop)
+
+Update whatever changed so the next person/agent starts where you left off:
+
+- `.ai/progress.md` — what changed, current state, clear next step. Always.
+- `.ai/architecture.md` / `stack.md` / `conventions.md` — if you changed design,
+  stack, or conventions.
+- `.ai/decisions/NNNN-*.md` — one short ADR per non-obvious decision (see template).
+- `.ai/lessons.md` — if you hit a non-obvious bug or gotcha worth remembering.
+
+## Writing rules
+
+- Be concrete and current. Delete stale statements instead of piling caveats.
+- Reference files/paths instead of pasting code, so notes don't rot.
+- Keep each file focused and skimmable. Prefer bullet lists over prose.

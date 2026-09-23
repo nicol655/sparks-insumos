@@ -1,0 +1,32 @@
+{
+  "$schema": "./verify.schema.json",
+  "onlyRunWhenDirty": true,
+  "failClosed": false,
+  "maxOutputChars": 4000,
+  "checks": [
+    {
+      "name": "typecheck",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps web npm run typecheck",
+      "enabled": true,
+      "description": "tsc --noEmit inside the web container. No Node required on the host."
+    },
+    {
+      "name": "lint",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps web npm run lint",
+      "enabled": true,
+      "description": "ESLint inside the web container."
+    },
+    {
+      "name": "test",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps web npm run test",
+      "enabled": true,
+      "description": "Vitest unit and component suite. E2E runs separately via the e2e service."
+    },
+    {
+      "name": "build",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps web npm run build",
+      "enabled": true,
+      "description": "next build (standalone output)."
+    }
+  ]
+}

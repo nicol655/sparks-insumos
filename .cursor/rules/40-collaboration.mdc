@@ -1,0 +1,32 @@
+---
+description: How context is shared and handed off across contributors and agents
+alwaysApply: true
+---
+
+# Collaboration & Handoff
+
+The goal: any contributor (human or AI) can pick up the project and get the same
+behavior, because all context is versioned in the repo — not trapped in one
+person's chat history.
+
+## Everything shared lives in the repo
+
+- Intent & knowledge: `.ai/**`
+- Agent behavior: `.cursor/rules/**`, `AGENTS.md`
+- Reusable workflows: `.cursor/commands/**`
+- Quality gates: `.cursor/verify.json`, `.cursor/hooks/**`
+
+Never rely on ephemeral chat memory or personal settings for anything a teammate
+would need. If it matters, write it into one of the files above and commit it.
+
+## Handing off work
+
+- End every working session with `.ai/progress.md` updated: current state + the
+  exact next step. A new agent should be able to run `/onboard` and continue.
+- Record decisions as ADRs in `.ai/decisions/` so choices aren't re-litigated.
+- Keep commits small and message the *why*.
+
+## Consistency
+
+- When behavior would contradict a recorded decision or convention, push back and
+  cite the specific file instead of silently diverging.

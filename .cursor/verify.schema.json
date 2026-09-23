@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cursor verify config",
+  "description": "Defines the quality gates the agent must pass before delivering an iteration.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "onlyRunWhenDirty": {
+      "type": "boolean",
+      "description": "If true, checks only run when the git working tree has uncommitted changes. Skips heavy runs on pure Q&A turns."
+    },
+    "failClosed": {
+      "type": "boolean",
+      "description": "If true, a crashing/timing-out verify hook blocks completion. If false, it fails open."
+    },
+    "maxOutputChars": {
+      "type": "integer",
+      "description": "Max characters of failing-command output injected back into the agent context.",
+      "minimum": 200
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "command", "enabled"],
+        "properties": {
+          "name": { "type": "string" },
+          "command": {
+            "type": "string",
+            "description": "Shell command to run. Empty string is treated as not configured."
+          },
+          "enabled": { "type": "boolean" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

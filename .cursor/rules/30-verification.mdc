@@ -1,0 +1,34 @@
+---
+description: The verification gate - never deliver an iteration that breaks checks
+alwaysApply: true
+---
+
+# Verification Gate
+
+An iteration is not "done" until the project's quality checks pass. This is
+enforced two ways and you are responsible for both.
+
+## What to run
+
+The checks for this project are declared in `.cursor/verify.json`
+(typecheck / lint / test / build). They are the single source of truth.
+
+- Run them with the `/verify` command, or run each enabled `command` directly in
+  the terminal (use this when a runtime like `node` isn't on PATH).
+- If `.cursor/verify.json` has no enabled checks yet, configure it for the
+  current stack (this is part of `/bootstrap`).
+
+## Your obligation before ending a turn
+
+1. If you changed code, run the checks.
+2. If any check fails, fix the **root cause** — do not weaken, skip, or delete a
+   test to make it pass, and do not claim success.
+3. Only state a task is complete when checks pass (or explain precisely why a
+   failure is pre-existing and unrelated to your change).
+
+## Automated backstop
+
+The `stop` hook (`.cursor/hooks/verify.mjs`) re-runs the checks when the working
+tree is dirty and, on failure, sends you a follow-up to fix them. Treat that
+follow-up as mandatory, not optional. Escape hatch for a genuinely unrelated
+failure: create `.cursor/skip-verify` and explain why.

@@ -1,0 +1,36 @@
+---
+description: Language-agnostic engineering standards for all code in this repo
+alwaysApply: true
+---
+
+# Engineering Standards
+
+These apply to every stack. Project-specific conventions live in
+`.ai/conventions.md` and take precedence where they conflict.
+
+## Code
+
+- Match existing style, structure, and naming before introducing your own.
+- Small functions, clear names, single responsibility. Delete dead code.
+- No secrets, tokens, or credentials in source. Read config from env.
+- Handle errors explicitly — never swallow them silently.
+
+```txt
+# BAD: silent failure hides bugs
+try { doWork() } catch (e) {}
+
+# GOOD: log with context and fail loudly / propagate
+try { doWork() } catch (e) { logger.error("doWork failed", e); throw }
+```
+
+## Changes
+
+- Keep diffs minimal and scoped to the task. No drive-by refactors mixed with features.
+- Don't add comments that narrate the code. Comment only non-obvious *why*.
+- Update or add tests alongside behavior changes (see `30-verification`).
+- Update docs in `.ai/` when behavior, architecture, or conventions change.
+
+## Dependencies
+
+- Prefer the standard library and existing dependencies. Justify new ones in an ADR.
+- Pin/lock versions via the project's package manager; never hand-invent versions.

@@ -1,0 +1,30 @@
+---
+description: Core development loop every task must follow (spec-driven, context-first)
+alwaysApply: true
+---
+
+# Development Loop
+
+Follow this loop for any non-trivial task. It keeps context durable and shareable.
+
+1. **Load context** — Before doing anything, read `.ai/` (start with `.ai/README.md`,
+   `.ai/project.md`, `.ai/architecture.md`, `.ai/progress.md`). Never assume; the
+   `.ai/` folder is the single source of truth for this project.
+2. **Spec** — For a new feature, create/refine `.ai/specs/<id>-<slug>/spec.md`
+   (the *what* and *why*). Ask for missing requirements instead of guessing.
+3. **Plan** — Write `plan.md` (the *how*: architecture, files, trade-offs). Every
+   technical choice must trace back to a requirement and to `.ai/constitution.md`.
+4. **Tasks** — Write `tasks.md`: an ordered, independently testable checklist.
+5. **Implement** — Execute one task at a time. Keep diffs small and reviewable.
+6. **Verify** — Run the quality gate (`/verify`) and fix failures at the root cause.
+   Do NOT report a task done until checks pass. See `30-verification`.
+7. **Persist** — Update `.ai/progress.md` and any changed docs/decisions before
+   ending the turn. See `10-context`.
+
+## Rules of engagement
+
+- Small, reversible steps over big-bang changes.
+- Prefer editing existing patterns over inventing new ones — match what's already there.
+- If a decision is ambiguous or has meaningful trade-offs, surface options; don't silently choose.
+- The slash commands `/spec`, `/plan`, `/tasks`, `/implement`, `/verify`,
+  `/save-context`, `/onboard`, `/bootstrap` scaffold each step of this loop.
