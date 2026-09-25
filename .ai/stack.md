@@ -20,9 +20,34 @@ Docker. Ver [ADR-0004](./decisions/0004-docker-first.md).
 | Playwright | 1.63 | E2E + `@axe-core/playwright`, en su propio servicio |
 | ESLint / Prettier | 9.x / 3.x | Flat config + `prettier-plugin-tailwindcss` |
 
-### `api/`
+### `api/` — esqueleto en marcha
 
-Todavía no existe. Su contrato vive en `web/src/lib/api/contract.ts`.
+Cuentas y sesión: [007](specs/007-api-autenticacion/plan.md) · ADR-0010 · ADR-0011.
+El contrato del **catálogo** sigue en `web/src/lib/api/contract.ts`. El de
+identidad vive en el plan 007, no en ese archivo Zod (el frontend no se
+conecta en esta rebanada).
+
+```powershell
+docker compose -f docker/docker-compose.yml up db api
+# http://localhost:8000/health  (o API_PORT)
+docker compose -f docker/docker-compose.yml run --rm api uv run pytest
+docker compose -f docker/docker-compose.yml run --rm --no-deps api uv run ruff check
+```
+
+`web` no depende de `db` ni de `api`. El gate de `web` sigue con `--no-deps`.
+
+| Pieza | Elección |
+|-------|----------|
+| Python | 3.12, imagen oficial |
+| HTTP | FastAPI + Uvicorn |
+| Datos | SQLAlchemy 2 async, asyncpg, Alembic, Postgres 16 |
+| Tests | pytest + pytest-asyncio + httpx, contra Postgres real |
+| Lint | Ruff |
+| Lock | `uv` + `uv.lock` (se genera al implementar; no hay pins en la spec) |
+
+El gate (`.cursor/verify.json`) corre `api-lint` y `api-test` junto con los
+checks de `web`. `api-test` levanta `db` (sin `--no-deps`). `api-lint` no lo
+necesita.
 
 ## Comandos
 
@@ -32,8 +57,12 @@ Todos desde la raíz del repositorio.
 # Desarrollo con hot reload → http://localhost:3000 (o WEB_PORT)
 docker compose -f docker/docker-compose.yml up web
 
-# Gate de calidad completo (typecheck + lint + test + build)
+# Gate de calidad de web (typecheck + lint + test + build)
 docker compose -f docker/docker-compose.yml run --rm --no-deps web npm run verify
+
+# Gate de la API: ruff no necesita la base; pytest sí
+docker compose -f docker/docker-compose.yml run --rm --no-deps api uv run ruff check
+docker compose -f docker/docker-compose.yml run --rm api uv run pytest
 
 # Checks sueltos
 docker compose -f docker/docker-compose.yml run --rm --no-deps web npm run typecheck

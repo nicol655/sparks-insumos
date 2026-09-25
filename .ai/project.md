@@ -21,8 +21,10 @@ Monorepo por servicios, cada uno autocontenido en Docker (ver `architecture.md`)
 
 - `web/` — storefront Next.js. Fase 1 publicada en local (home, catálogo, ficha,
   carrito, búsqueda). Falta el cupón (T083, reglas sin definir).
-- `api/` — backend propio (catálogo, pedidos, autenticación). **Todavía no existe**; se desarrolla
-  después. Su contrato se define desde `web/src/lib/api/contract.ts`.
+- `api/` — backend propio (catálogo, pedidos, autenticación). El esqueleto
+  (FastAPI + Postgres en Docker) está en marcha. La autenticación de
+  `specs/007-api-autenticacion/` sigue en tareas. El contrato del catálogo
+  sigue en `web/src/lib/api/contract.ts`.
 - `docker/` — orquestación del stack completo.
 
 ## Fuentes de verdad del diseño
@@ -36,5 +38,7 @@ Monorepo por servicios, cada uno autocontenido en Docker (ver `architecture.md`)
 ## Status
 
 Fase 1 del storefront cerrada salvo T083 (cupón). Contacto visual (004) está
-publicado. Siguiente: resto de Fase 2 (checkout, login, registro, cuenta, sets)
-y el servicio `api/`. Ver `progress.md` y `specs/001-storefront-fase-1/`.
+publicado. `api/` cierra la autenticación de
+`specs/007-api-autenticacion/` (T250–T265): registro, login, logout, `/me`,
+cambio obligatorio de clave y Swagger. El frontend no se conecta todavía.
+Roles quedan para una spec posterior. Ver `progress.md`.

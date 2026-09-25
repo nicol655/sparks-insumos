@@ -1,6 +1,66 @@
 # Progress
 
-## Estado actual · 2026-09-23 (sesión 19) — 005 carrito visual (T230–T236)
+## Estado actual · 2026-09-25 — 007 cerrada (T250–T265)
+
+Cuentas y sesión en `api/`: registro, login, logout, `GET`/`PATCH`/`PUT`/
+`DELETE /me`, candado `password_change_required` y
+`POST /auth/change-password`. Swagger en `/docs`. ADR 0010 y 0011
+`accepted`. Pytest de la API: 61. Ruff en verde. El gate de `.cursor/verify.json`
+incluye `api-lint` y `api-test`. `web`: 497 tests. El frontend no llama a
+`api/`. Roles, fuera de esta spec.
+
+Siguiente: una spec de roles, o conectar el storefront. T083 sigue bloqueada.
+
+## Sesión 23 · 2026-09-25 — tasks 007
+
+- Política de clave: 8–128, mayúscula, minúscula, número, especial, sin
+  espacios. `admin123456` sólo como semilla de la migración.
+- Teléfono: 6–32 y empieza con `+`.
+- Sesión: 6 horas. Logout con el flag en true sigue en 403.
+- Cambio de clave con el flag en false: 403 `action_denied`.
+- Roles: tarea siguiente, fuera de 007.
+
+## Sesión 22 · 2026-09-23 — kickers oro a 10px (ADR-0009)
+
+TIENDA / CUENTA / Envíos / Pagos / Mayorista / Sparks Club / 01–04 vuelven
+al proto: mono **10px** `#8A6B32`. El 24px los leía como títulos.
+«Se recuerda.» sigue oro grande. Axe ignora solo esos kickers (ADR-0009).
+Siguiente: resto de Fase 2.
+
+## Sesión 21 · 2026-09-23 — 006 fidelidad home (T240–T247)
+
+Home alineada al proto. Gate Docker verde (**497 tests**). E2E home +
+catálogo + a11y + copy-elasticity + touch + semantics verdes. T083 sigue
+bloqueada.
+
+Siguiente: resto de Fase 2 (login, registro, cuenta, sets, checkout) y `api/`.
+
+### 006 · Home (T240–T247)
+
+- `GoldRule` 34×1 en hero y Club. Marquesina Cormorant 22px (`text-text-muted`:
+  el `ink/55` del proto es 4.11:1 y rompe axe).
+- Familias con desc + count, min-h 250, hover ink.
+- Destacados «Los más pedidos» + «Ver todo». Sin `Services` (T054).
+- Club h2 34→56 + raya en el kicker. Catálogo: crumb «Catálogo · N perfumes».
+
+## Sesión 20 · 2026-09-23 — plan 006 fidelidad home
+
+Repaso home vs proto `QUUhcHp24QBtXkUG8sHPDj`. Los huecos que se ven:
+marquesina 11px (debe ser Cormorant 22px), familias sin desc/count/hover,
+Destacados ≠ «Los más pedidos» + Ver todo, `Services` extra, raya del hero
+a 32px (proto 34), club h2 chico.
+
+Oro menor a 24px no se implementa (RNF-2): 24px o raya 34×1.
+
+Siguiente: `/tasks` y `/implement` de 006.
+
+### 006 · Home (propuesto)
+
+- `GoldRule` 34×1. Marquesina display 22px. Familias completas.
+- Destacados proto. Quitar T054. Club 34→56 + raya en el kicker.
+- P1: crumb del catálogo.
+
+## Sesión 19 · 2026-09-23 — 005 carrito visual (T230–T236)
 
 **495 tests**, E2E **133 passed / 15 skipped** en 4 viewports. Gate typecheck +
 lint + test + build en verde.
@@ -395,8 +455,9 @@ El usuario aprobó spec y plan el 2026-09-22.
 
 ## Próximo paso
 
-Aprobar [002](./specs/002-home-clubhouse-banner/plan.md) y correr `/tasks` (banner
-clubhouse). Después: spec de Fase 2 (checkout, login, registro, cuenta, contacto) y `api/`.
+[007](./specs/007-api-autenticacion/tasks.md) está cerrada (T250–T265).
+El frontend no se conecta en esta rebanada. Lo que sigue es una spec de
+roles, o enlazar el storefront con `api/`.
 
 **T083** sigue bloqueada hasta que existan reglas de cupón (pregunta abierta 4 de la spec).
 
@@ -404,6 +465,6 @@ El repositorio **sigue sin ningún commit**.
 
 ## Pendientes de contexto
 
-`business-model.md` sigue en `_TBD_`. `architecture.md`, `stack.md`, `conventions.md` y
-`glossary.md` ya describen lo que hay. Los bloques Standalone / Full stack / PRE deploy
-de `architecture.md` siguen vacíos a propósito: no hay `api/` ni pipeline de publish.
+`architecture.md` describe la API de cuentas de 007 como código ya hecho.
+Standalone / Full stack / PRE deploy siguen vacíos: no hay pipeline de publish.
+`web/` no se conecta a `api/` en esta rebanada.

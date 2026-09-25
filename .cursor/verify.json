@@ -27,6 +27,18 @@
       "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps web npm run build",
       "enabled": true,
       "description": "next build (standalone output)."
+    },
+    {
+      "name": "api-lint",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps api uv run ruff check",
+      "enabled": true,
+      "description": "Ruff inside the api container. No Python required on the host."
+    },
+    {
+      "name": "api-test",
+      "command": "docker compose -f docker/docker-compose.yml run --rm api uv run pytest",
+      "enabled": true,
+      "description": "pytest unit and e2e against Postgres. Starts db; not --no-deps."
     }
   ]
 }

@@ -2,6 +2,24 @@
 
 Gotchas no obvios que costaron tiempo. Concretos y accionables.
 
+## API
+
+### Alembic desde pytest no puede usar `asyncio.run` en el mismo loop
+
+`alembic/env.py` llama a `asyncio.run`. Si un fixture async de pytest-asyncio
+hace `command.upgrade` en el mismo proceso, falla con «this event loop is
+already running». `tests/conftest.py` lanza `alembic upgrade head` en un
+subproceso, con `ALEMBIC_DATABASE_URL` apuntando a `sparks_test`.
+
+### El engine de la app no puede reusar conexiones entre tests
+
+pytest-asyncio abre un event loop por test. El pool de `app.db.engine`
+guarda conexiones de asyncpg atadas al loop anterior y el siguiente request
+revienta con «Future attached to a different loop». En e2e,
+`_point_app_at_test_database()` sustituye ese engine por uno a
+`sparks_test` con `NullPool`, así cada request abre la conexión en el loop
+del test.
+
 ## Docker
 
 ### El healthcheck de Next debe usar `127.0.0.1`, no `localhost`
@@ -187,6 +205,19 @@ Excluir `.sr-only` (y `[aria-hidden='true']`) de esas mediciones.
 `page.emulateMedia({ reducedMotion: "reduce" })` en Chromium para la marquesina:
 `getComputedStyle().animationName` es `""` y `transform` es `none`. Aceptar
 ambos; no exigir el literal `"none"` en `animationName`.
+
+### Kickers oro a 10px (ADR-0009)
+
+24px en TIENDA / Envíos / Sparks Club / 01–04 los convierte en títulos.
+El proto es 10px `#8A6B32`. Sobre canvas Chrome marca 4.4:1 (aviso). Sobre
+ink, un oro más claro (`oklch(0.72 0.09 85)`) llega a 7.5:1. No subir el
+kicker a 24px para “arreglar” el aviso.
+
+### Contraste: `text-ink/55` a 22px no pasa AA
+
+El proto pinta la marquesina `rgba(20,16,14,0.55)` sobre `#FBF9F5`. Axe mide
+4.11:1 (hace falta 4.5:1; 22px regular no es «large text»). Usar
+`text-text-muted` (`#3E3731`). No relajar el E2E de axe.
 
 ### Contraste: `canvas/40` y `text-success` fallan a 10px
 

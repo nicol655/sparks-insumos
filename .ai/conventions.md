@@ -11,7 +11,7 @@ web/src/
 ├── components/
 │   ├── primitives/        # §03: buttons, inputs, chip, badge, accordion, toast
 │   ├── layout/            # header, footer, menu, FAB, skip-link, toasts
-│   ├── home/              # hero, marquee, families, featured, services, club, commerce-strip
+│   ├── home/              # hero, marquee, families, featured, club, commerce-strip
 │   ├── catalog/           # card, grid, facets, sort, empty/error
 │   ├── product/           # gallery, pyramid, specs, accordion, purchase
 │   ├── cart/              # drawer, view, line, summary
@@ -53,7 +53,8 @@ web/src/
 - Client islands only where the browser must act (cart, search, gallery, steppers). Pages stay RSC.
 - Per-route SEO goes through `seoMetadata()` (`web/src/lib/seo.ts`). Layout owns `metadataBase` and icons.
 - Interactive controls get `min-h-11` (44px) so AC-15 holds at 360px. Underlined text links need `inline-flex items-center` or they shrink to the glyph.
-- `text-accent-gold` only on type ≥24px or on non-text (RNF-2). `accent-gold.test.ts` enforces it.
+- `text-accent-gold` on titles/body ≥24px, on proto kickers at 10px (`GOLD_KICKER` /
+  `GOLD_INDEX`), or on non-text (ADR-0009). `accent-gold.test.ts` enforces that set.
 
 ## Anti-patterns to avoid
 

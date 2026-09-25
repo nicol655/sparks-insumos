@@ -2,9 +2,12 @@
 
 ## Overview
 
-Un storefront de Next.js (`web/`) que hoy se sirve solo y mañana hablará con una API propia
-(`api/`, todavía inexistente). La apuesta central: el frontend se construye **contra un contrato,
-no contra un backend**, de modo que el día que `api/` exista no haya que reescribir componentes.
+Un storefront de Next.js (`web/`) que hoy se sirve solo. `api/` tiene cuentas y
+sesión de `specs/007-api-autenticacion/` (registro, login, logout, `/me`,
+cambio de clave, Swagger) y Postgres en Compose. El catálogo sigue contra el
+contrato de `web/src/lib/api/contract.ts`. La apuesta
+central no cambia: el frontend se construye **contra un contrato, no contra un backend**, de modo
+que conectar `api/` no reescriba componentes.
 
 ## Components / boundaries
 
@@ -77,18 +80,20 @@ mismo store; el contador del header espera `hydrated` para no desajustar el HTML
 del servidor. La página (005) pinta el aside del prototipo; el drawer conserva
 el resumen compacto. El `wa.me` de pedido no se arma bajo $30.000.
 
-### Hero (003)
+### Hero y home (003 / 006)
 
-Dos columnas a sangre. Copy a la izquierda (raya + h1 con `titleEm` oro +
+Orden: Hero → marquesina → familias → destacados → Club → `commerce-strip`
+(Envíos / Pagos / Mayorista). **Sin** el bloque T054.
+
+Copy del hero a la izquierda (`GoldRule` 34×1 + h1 con `titleEm` oro +
 CTAs + stats). Figure a la derecha con `Packshot fill`, pegada a la
-marquesina `bg-surface-raised`. El 3:2 de T050 queda reemplazado.
+marquesina (Cormorant 22px, `text-text-muted`). Familias: desc + count,
+min-h 250, hover ink. Destacados: «Los más pedidos» + «Ver todo».
 
-### Cierre de home (002)
-
-Orden: `Club` (ink, CTAs a `/registro` e `/ingresar`) → `commerce-strip.tsx`
-(Envíos / Pagos / Mayorista) → footer del layout. Redes del prototipo
-(`sparks.insumos`). FAB con `border-canvas/20`. Kickers y títulos de columna
-en `text-accent-gold` a ≥24px (RNF-2; el proto los pinta a 10px).
+Club: h2 34→56, kicker e índices oro **10px** (`GOLD_KICKER` / `GOLD_INDEX`,
+ADR-0009). Misma escala en commerce-strip, footer y contacto. El h1
+«Se recuerda.» sigue oro grande.
+Redes del prototipo (`sparks.insumos`). FAB con `border-canvas/20`.
 
 ### Búsqueda
 
@@ -120,6 +125,21 @@ ink a `wa.me` (`whatsapp.general`). Sin POST ni toast. Kicker oro ≥24px
 No hay pasarela de pago en Fase 1. El carrito se convierte en un mensaje de WhatsApp
 (`buildWhatsappUrl`) con el pedido precargado; el texto sale del diccionario para que se traduzca.
 
+### Cuentas (007)
+
+Implementada en [`specs/007-api-autenticacion/`](specs/007-api-autenticacion/spec.md).
+Servicios `db` y `api` en Compose (`web` no depende de ellos). Bases `sparks`
+y `sparks_test`. `GET /health` sigue para el healthcheck.
+
+- FastAPI + SQLAlchemy async + Postgres, en contenedores `api` y `db`.
+  `web` no depende de ellos.
+- Bearer opaco guardado hasheado en `sessions`. Logout revoca la fila.
+- `DELETE /me` pone `users.active = false`. No borra la fila.
+- `must_change_password`: el login entrega token, y cualquier otra ruta
+  autenticada responde 403 `password_change_required` hasta
+  `POST /auth/change-password`. El usuario base nace con el flag en true.
+- Swagger en `/docs`. El storefront no se conecta en esta rebanada.
+
 ### Standalone
 <!-- The concrete pain and the "job" the customer hires the product to do. -->
 - _TBD_
@@ -140,7 +160,8 @@ En tiempo de build: **ninguna**. Las tipografías están versionadas (ADR-0006) 
 En tiempo de ejecución:
 
 - **wa.me** — el checkout termina en WhatsApp. Sin SDK: sólo un enlace.
-- **`api/`** — todavía no existe. Mientras `API_MODE=mock`, el storefront se sirve solo.
+- **`api/`** — cuentas y sesión de 007, más Postgres. El storefront no la llama:
+  mientras `API_MODE=mock`, se sirve solo.
 
 No hay pasarela de pago, analítica ni CMS en Fase 1.
 
