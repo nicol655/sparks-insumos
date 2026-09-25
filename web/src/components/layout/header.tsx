@@ -3,12 +3,13 @@
 import { useTranslations } from "next-intl";
 
 import { MenuGlyph, ShoppingBagIcon } from "@/components/icons";
+import { AccountLink } from "@/components/layout/account-link";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { NAV_KEY, PRIMARY_NAV } from "@/components/layout/nav";
 import { Wordmark } from "@/components/layout/wordmark";
 import { SearchTrigger } from "@/components/search/search-trigger";
-
 import { Link } from "@/i18n/navigation";
+
 import { cartCount, useCartStore } from "@/lib/cart/store";
 import { useUiStore } from "@/lib/ui/store";
 
@@ -81,9 +82,7 @@ export function Header() {
             <LanguageSwitcher />
           </div>
 
-          <Link href="/ingresar" className={`${HEADER_LINK} hidden lg:inline`}>
-            {t("header.signIn")}
-          </Link>
+          <AccountLink className={`${HEADER_LINK} hidden lg:inline`} />
 
           <button
             type="button"

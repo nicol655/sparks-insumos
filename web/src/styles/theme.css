@@ -180,3 +180,20 @@
   --default-transition-duration: 180ms;
   --default-transition-timing-function: ease;
 }
+
+/* Actions take the pointer. A disabled control does not (spec 009 RF-4). */
+@layer base {
+  a[href],
+  button:not(:disabled),
+  label,
+  summary,
+  [role="button"]:not([aria-disabled="true"]),
+  [role="link"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}

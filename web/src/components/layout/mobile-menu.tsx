@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useTranslations } from "next-intl";
 
 import { WhatsappDot, XIcon } from "@/components/icons";
+import { AccountLink } from "@/components/layout/account-link";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { NAV_KEY, PRIMARY_NAV } from "@/components/layout/nav";
 import { BUTTON_TYPE, TOUCH_TARGET } from "@/components/primitives/button-base";
@@ -68,9 +69,7 @@ export function MobileMenu() {
             {t(NAV_KEY[item.key])}
           </Link>
         ))}
-        <Link href="/ingresar" className={MENU_LINK} onClick={close}>
-          {t("header.signIn")}
-        </Link>
+        <AccountLink className={MENU_LINK} onClick={close} />
       </nav>
 
       <div className="mt-8">

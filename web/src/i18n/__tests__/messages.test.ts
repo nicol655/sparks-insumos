@@ -47,6 +47,13 @@ const DICTIONARIES: Record<string, Dictionary> = { es, en };
  * matches is untranslated copy — add it here only after deciding it is not.
  */
 const SHARED_ACROSS_LANGUAGES = [
+  "account.missing",
+  "auth.email",
+  "auth.emailPh",
+  "auth.firstNamePh",
+  "auth.lastNamePh",
+  "auth.passwordPh",
+  "auth.phonePh",
   "brand.name",
   "brand.tagline",
   "cart.price",

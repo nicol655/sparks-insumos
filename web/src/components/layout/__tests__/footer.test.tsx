@@ -6,16 +6,31 @@ import { Footer } from "@/components/layout/footer";
 import { expectNoA11yViolations } from "@/test/a11y";
 import { renderWithIntl } from "@/test/i18n";
 
+vi.mock("next/navigation", () => ({
+  useParams: () => ({}),
+}));
+
 vi.mock("@/i18n/navigation", () => ({
   Link: ({
     href,
     children,
     ...rest
-  }: { href: string; children: ReactNode } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...rest}>
-      {children}
-    </a>
-  ),
+  }: {
+    href: string | { pathname: string; query?: Record<string, string> };
+    children: ReactNode;
+  } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">) => {
+    const resolved =
+      typeof href === "string"
+        ? href
+        : href.query
+          ? `${href.pathname}?${new URLSearchParams(href.query).toString()}`
+          : href.pathname;
+    return (
+      <a href={resolved} {...rest}>
+        {children}
+      </a>
+    );
+  },
   usePathname: () => "/",
   useRouter: () => ({ replace: vi.fn() }),
 }));

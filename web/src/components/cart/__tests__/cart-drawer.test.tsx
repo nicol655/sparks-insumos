@@ -25,14 +25,18 @@ vi.mock("@/i18n/navigation", () => ({
     onClick,
     ...rest
   }: {
-    href: string | { pathname: string; params?: Record<string, string> };
+    href: string | { pathname: string; query?: Record<string, string>; params?: Record<string, string> };
     children: ReactNode;
     onClick?: () => void;
   } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">) => {
-    const resolved =
+    const path =
       typeof href === "string"
         ? href
         : href.pathname.replace("[slug]", href.params?.slug ?? "");
+    const resolved =
+      typeof href !== "string" && href.query
+        ? `${path}?${new URLSearchParams(href.query).toString()}`
+        : path;
     return (
       <a href={resolved} onClick={onClick} {...rest}>
         {children}

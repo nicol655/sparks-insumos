@@ -22,11 +22,23 @@ vi.mock("@/i18n/navigation", () => ({
     children,
     onClick,
     ...rest
-  }: { href: string; children: ReactNode; onClick?: () => void } & AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} onClick={onClick} {...rest}>
-      {children}
-    </a>
-  ),
+  }: {
+    href: string | { pathname: string; query?: Record<string, string> };
+    children: ReactNode;
+    onClick?: () => void;
+  } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">) => {
+    const resolved =
+      typeof href === "string"
+        ? href
+        : href.query
+          ? `${href.pathname}?${new URLSearchParams(href.query).toString()}`
+          : href.pathname;
+    return (
+      <a href={resolved} onClick={onClick} {...rest}>
+        {children}
+      </a>
+    );
+  },
   usePathname: () => "/",
   useRouter: () => ({ replace }),
 }));
@@ -67,7 +79,10 @@ describe("MobileMenu", () => {
     const menu = within(screen.getByRole("dialog"));
 
     expect(menu.getByRole("link", { name: "Catálogo" })).toHaveAttribute("href", "/catalogo");
-    expect(menu.getByRole("link", { name: "Ingresar" })).toHaveAttribute("href", "/ingresar");
+    expect(menu.getByRole("link", { name: "Ingresar" })).toHaveAttribute(
+      "href",
+      "/ingresar?next=%2Fes",
+    );
     expect(menu.getByRole("button", { name: "Ver el sitio en Inglés" })).toBeInTheDocument();
     expect(menu.getByRole("link", { name: "Consultar por WhatsApp" })).toHaveAttribute(
       "href",

@@ -7,6 +7,9 @@ export const PHASE1_ROUTES = [
   { es: "/es/catalogo/bharara-king", en: "/en/catalogue/bharara-king" },
   { es: "/es/carrito", en: "/en/cart" },
   { es: "/es/contacto", en: "/en/contact" },
+  { es: "/es/ingresar", en: "/en/sign-in" },
+  { es: "/es/registro", en: "/en/register" },
+  { es: "/es/cuenta", en: "/en/account" },
 ] as const;
 
 export async function openStorefront(page: Page, path: string) {

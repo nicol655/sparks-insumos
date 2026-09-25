@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 
+import { AccountLink } from "@/components/layout/account-link";
 import { Wordmark } from "@/components/layout/wordmark";
 import { GOLD_KICKER } from "@/components/primitives/gold-kicker";
 import { Link } from "@/i18n/navigation";
@@ -73,9 +74,7 @@ export function Footer() {
 
         <nav aria-label={t("footer.account")} className="flex flex-col gap-1">
           <p className={GOLD_KICKER}>{t("footer.account")}</p>
-          <Link href="/ingresar" className={FOOTER_LINK}>
-            {t("header.signIn")}
-          </Link>
+          <AccountLink className={FOOTER_LINK} />
           <Link href="/registro" className={FOOTER_LINK}>
             {t("footer.createAccount")}
           </Link>
