@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Packshot } from "@/components/catalog/packshot";
 import { WhatsappDot } from "@/components/icons";
 import { BUTTON_TYPE, TOUCH_TARGET } from "@/components/primitives/button-base";
+import { GoldRule } from "@/components/primitives/gold-rule";
 import { Link } from "@/i18n/navigation";
 import { buildWhatsappUrl } from "@/lib/whatsapp";
 
@@ -25,19 +26,19 @@ export function Hero({ catalogSize }: Props) {
 
   return (
     <section data-home-hero className="lg:grid lg:grid-cols-2">
-      <div className="px-gutter py-section flex flex-col justify-center">
+      <div className="px-gutter py-section flex flex-col justify-center gap-7">
         <p className="text-eyebrow text-text-meta flex items-center gap-3.5 uppercase">
-          <span aria-hidden="true" className="bg-accent-gold h-px w-8 shrink-0" />
+          <GoldRule />
           <span className="min-w-0">{t("home.hero.eyebrow")}</span>
         </p>
-        <h1 className="text-h1-hero font-display mt-6">
+        <h1 className="text-h1-hero font-display">
           {t("home.hero.titleLead")}{" "}
           <em className="text-h1-hero font-normal text-accent-gold italic">
             {t("home.hero.titleEm")}
           </em>
         </h1>
-        <p className="text-body-l text-text-muted mt-6 max-w-[46ch]">{t("home.hero.body")}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <p className="text-body-l text-text-muted max-w-[46ch]">{t("home.hero.body")}</p>
+        <div className="flex flex-wrap gap-3">
           <Link
             href="/catalogo"
             className={[
@@ -62,7 +63,7 @@ export function Hero({ catalogSize }: Props) {
             {t("home.hero.ctaWhatsapp")}
           </a>
         </div>
-        <dl className="mt-10 grid grid-cols-3 gap-4 sm:gap-8">
+        <dl className="grid grid-cols-3 gap-4 sm:gap-8">
           {STATS.map((key) => (
             <div key={key} className="flex flex-col-reverse">
               <dt className="text-eyebrow text-text-meta mt-2 uppercase">{t(`home.stats.${key}`)}</dt>

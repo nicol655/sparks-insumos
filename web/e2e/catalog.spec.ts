@@ -9,6 +9,7 @@ test("the catalogue has a single h1 and lists products", async ({ page }) => {
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Catálogo");
+  await expect(page.getByText(/Catálogo · \d+ perfumes/)).toBeVisible();
   await expect(page.getByRole("list", { name: "Resultados del catálogo" })).toBeVisible();
   await expect(page.getByRole("complementary")).toBeVisible();
 });

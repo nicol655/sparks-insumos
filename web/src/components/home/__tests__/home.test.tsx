@@ -5,11 +5,16 @@ import { describe, expect, it, vi } from "vitest";
 import { BrandMarquee } from "@/components/home/brand-marquee";
 import { Club } from "@/components/home/club";
 import { CommerceStrip } from "@/components/home/commerce-strip";
+import { Featured } from "@/components/home/featured";
 import { Hero } from "@/components/home/hero";
 import { OlfactiveFamilies } from "@/components/home/olfactive-families";
-import { Services } from "@/components/home/services";
+import { catalogFor } from "@/fixtures/catalog";
 import { expectNoA11yViolations } from "@/test/a11y";
 import { renderWithIntl } from "@/test/i18n";
+
+vi.mock("next/navigation", () => ({
+  useParams: () => ({}),
+}));
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({
@@ -17,7 +22,7 @@ vi.mock("@/i18n/navigation", () => ({
     children,
     ...rest
   }: {
-    href: string | { pathname: string; query?: Record<string, string> };
+    href: string | { pathname: string; query?: Record<string, string>; params?: Record<string, string> };
     children: ReactNode;
   } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href">) => {
     const resolved =
@@ -25,7 +30,9 @@ vi.mock("@/i18n/navigation", () => ({
         ? href
         : href.query
           ? `${href.pathname}?${new URLSearchParams(href.query).toString()}`
-          : href.pathname;
+          : href.params
+            ? href.pathname.replace("[slug]", href.params.slug ?? "")
+            : href.pathname;
     return (
       <a href={resolved} {...rest}>
         {children}
@@ -57,7 +64,8 @@ describe("Hero", () => {
     expect(copy?.contains(screen.getByRole("img", { name: "Eau de parfum · 100 ml" }))).toBe(
       false,
     );
-    expect(container.querySelector("[data-home-hero] .bg-accent-gold.h-px")).toBeTruthy();
+    const rule = container.querySelector("[data-home-hero] [data-gold-rule]");
+    expect(rule).toHaveClass("w-[34px]", "bg-accent-gold", "h-px");
     expect(container.querySelector("[data-home-hero] [role='img']")).toHaveClass("absolute");
   });
 
@@ -76,14 +84,14 @@ describe("BrandMarquee", () => {
     expect(items).toHaveLength(4);
     expect(container.querySelector("[data-home-marquee]")).toHaveClass("bg-surface-raised");
     expect(container.querySelector("[data-marquee]")).toBeInTheDocument();
-    expect(items[0]).toHaveClass("text-[11px]");
+    expect(items[0]).toHaveClass("font-display", "text-[22px]", "text-text-muted");
     expect(screen.getByText("Lattafa, Rasasi")).toHaveClass("sr-only");
   });
 });
 
 describe("OlfactiveFamilies", () => {
   it("renders known families as numbered links into the catalogue", () => {
-    renderWithIntl(
+    const { container } = renderWithIntl(
       <OlfactiveFamilies
         families={[
           { value: "gourmand", count: 3 },
@@ -97,24 +105,39 @@ describe("OlfactiveFamilies", () => {
       "href",
       "/catalogo?family=gourmand",
     );
-    expect(screen.getByText("01")).toBeInTheDocument();
+    expect(screen.getByText("01")).toHaveClass("text-accent-gold", "text-[10px]");
+    expect(screen.getByText("Vainilla, café, pistacho, praliné.")).toBeInTheDocument();
+    expect(screen.getByText("3 perfumes")).toBeInTheDocument();
+    expect(container.querySelector("a")).toHaveClass("min-h-[250px]", "hover:bg-ink");
   });
 });
 
-describe("Services, Club and commerce strip", () => {
-  it("keeps the T054 tiles and renders the clubhouse with account CTAs", () => {
-    renderWithIntl(
+describe("Featured", () => {
+  it("uses the proto title and a view-all link into the catalogue", () => {
+    const product = catalogFor("es").find((item) => item.stock > 0)!;
+    renderWithIntl(<Featured products={[product]} />);
+
+    expect(screen.getByRole("heading", { name: "Los más pedidos" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ver todo" })).toHaveAttribute("href", "/catalogo");
+    expect(screen.queryByText("Lo que más se está llevando")).not.toBeInTheDocument();
+  });
+});
+
+describe("Club and commerce strip", () => {
+  it("renders the clubhouse with a gold rule and the proto commerce cells", () => {
+    const { container } = renderWithIntl(
       <>
-        <Services />
         <Club />
         <CommerceStrip />
       </>,
     );
 
-    expect(screen.getByRole("heading", { name: "Envíos a todo el país" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Asesoramiento real" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Envíos a todo el país" })).not.toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Registrate y comprá distinto." }),
     ).toBeInTheDocument();
+    expect(screen.getByText("Sparks Club")).toHaveClass("text-accent-gold", "text-[10px]");
     expect(screen.getByRole("link", { name: "Crear cuenta" })).toHaveAttribute("href", "/registro");
     expect(screen.getByRole("link", { name: "Ya tengo cuenta" })).toHaveAttribute(
       "href",
@@ -133,7 +156,6 @@ describe("Services, Club and commerce strip", () => {
   it("has no accessibility violations", async () => {
     const { container } = renderWithIntl(
       <>
-        <Services />
         <Club />
         <CommerceStrip />
       </>,

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import { ContactForm } from "@/components/contact/contact-form";
+import { GOLD_KICKER } from "@/components/primitives/gold-kicker";
 import { WhatsappDot } from "@/components/icons";
 import { buildWhatsappUrl } from "@/lib/whatsapp";
 
@@ -23,9 +24,7 @@ export function ContactPage() {
   return (
     <main className="border-border-hairline grid border-b lg:grid-cols-2">
       <div className="flex flex-col gap-6 px-gutter pt-[clamp(42px,5vw,66px)] pb-[clamp(52px,6vw,80px)]">
-        <p className="font-mono text-[24px] leading-none tracking-[0.22em] text-accent-gold uppercase">
-          {t("contact.kicker")}
-        </p>
+        <p className={GOLD_KICKER}>{t("contact.kicker")}</p>
         <h1 className="font-display text-[clamp(2.125rem,4.4vw,3.5rem)] leading-[1.02]">
           {t("contact.title")}
         </h1>

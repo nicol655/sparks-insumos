@@ -8,7 +8,6 @@ import { CommerceStrip } from "@/components/home/commerce-strip";
 import { Featured } from "@/components/home/featured";
 import { Hero } from "@/components/home/hero";
 import { OlfactiveFamilies } from "@/components/home/olfactive-families";
-import { Services } from "@/components/home/services";
 import { catalogQuerySchema, catalogRepository } from "@/lib/api";
 import { routing } from "@/i18n/routing";
 
@@ -35,7 +34,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       <BrandMarquee brands={facets.brands.map((brand) => brand.value)} />
       <OlfactiveFamilies families={facets.families} />
       <Featured products={featured} />
-      <Services />
       <Club />
       <CommerceStrip />
     </main>

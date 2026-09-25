@@ -78,19 +78,17 @@
     },
     "families": {
       "title": "Por familia olfativa",
-      "note": "Elegí por cómo querés que te recuerden, no por la etiqueta"
+      "note": "Elegí por cómo querés que te recuerden, no por la etiqueta",
+      "desc": {
+        "ambar-especias": "Cálidos, dulces, de larga duración.",
+        "florales": "Rosa, jazmín, azahar. Luminosos.",
+        "gourmand": "Vainilla, café, pistacho, praliné.",
+        "maderas": "Sándalo, cedro, oud. Elegantes."
+      }
     },
     "featured": {
-      "title": "Destacados",
-      "note": "Lo que más se está llevando"
-    },
-    "services": {
-      "shippingTitle": "Envíos a todo el país",
-      "shippingBody": "Despacho en 24 h hábiles. El costo se confirma por WhatsApp según destino y volumen.",
-      "adviceTitle": "Asesoramiento real",
-      "adviceBody": "Escribinos con lo que buscás: te armamos una terna corta, no un catálogo entero.",
-      "returnsTitle": "Cambios simples",
-      "returnsBody": "Si no es lo que esperabas, lo resolvemos. Las reglas completas van en cada ficha."
+      "title": "Los más pedidos",
+      "viewAll": "Ver todo"
     },
     "club": {
       "kicker": "Sparks Club",
@@ -124,6 +122,7 @@
     "viewProduct": "Ver {name}",
     "title": "Catálogo",
     "count": "{count, plural, one {# perfume} other {# perfumes}}",
+    "crumb": "{count, plural, one {Catálogo · # perfume} other {Catálogo · # perfumes}}",
     "results": "Resultados del catálogo",
     "filters": "Filtros",
     "closeFilters": "Cerrar filtros",

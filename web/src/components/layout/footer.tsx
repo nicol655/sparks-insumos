@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 
 import { Wordmark } from "@/components/layout/wordmark";
+import { GOLD_KICKER } from "@/components/primitives/gold-kicker";
 import { Link } from "@/i18n/navigation";
 import { catalogQuerySchema } from "@/lib/api/contract";
 import { catalogUrl } from "@/lib/catalog/search-params";
@@ -55,9 +56,7 @@ export function Footer() {
         </div>
 
         <nav aria-label={t("footer.shop")} className="flex flex-col gap-1">
-          <p className="font-mono text-[24px] leading-none tracking-[0.2em] text-accent-gold uppercase">
-            {t("footer.shop")}
-          </p>
+          <p className={GOLD_KICKER}>{t("footer.shop")}</p>
           <Link href="/catalogo" className={FOOTER_LINK}>
             {t("nav.catalog")}
           </Link>
@@ -73,9 +72,7 @@ export function Footer() {
         </nav>
 
         <nav aria-label={t("footer.account")} className="flex flex-col gap-1">
-          <p className="font-mono text-[24px] leading-none tracking-[0.2em] text-accent-gold uppercase">
-            {t("footer.account")}
-          </p>
+          <p className={GOLD_KICKER}>{t("footer.account")}</p>
           <Link href="/ingresar" className={FOOTER_LINK}>
             {t("header.signIn")}
           </Link>
@@ -91,9 +88,7 @@ export function Footer() {
         </nav>
 
         <nav aria-label={t("footer.help")} className="flex flex-col gap-1">
-          <p className="font-mono text-[24px] leading-none tracking-[0.2em] text-accent-gold uppercase">
-            {t("footer.help")}
-          </p>
+          <p className={GOLD_KICKER}>{t("footer.help")}</p>
           <Link href="/contacto" className={FOOTER_LINK}>
             {t("nav.contact")}
           </Link>

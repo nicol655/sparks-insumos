@@ -52,10 +52,10 @@ export default async function CatalogPage({
   return (
     <main className="px-gutter py-section">
       <div className="mb-10">
-        <h1 className="text-h1-page font-display">{t("catalog.title")}</h1>
-        <p className="text-body-m text-text-muted mt-3">
-          {t("catalog.count", { count: list.total })}
+        <p className="font-mono text-text-meta text-[10px] tracking-[0.16em] uppercase">
+          {t("catalog.crumb", { count: list.total })}
         </p>
+        <h1 className="text-h1-page font-display mt-3">{t("catalog.title")}</h1>
       </div>
 
       <div className="flex flex-col gap-[26px] xl:grid xl:grid-cols-[268px_minmax(0,1fr)] xl:items-start xl:gap-[30px]">

@@ -11,7 +11,7 @@ describe("ContactPage", () => {
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Escribinos.");
-    expect(screen.getByText("Contacto")).toHaveClass("text-accent-gold", "text-[24px]");
+    expect(screen.getByText("Contacto")).toHaveClass("text-accent-gold", "text-[10px]");
     expect(screen.getByText("hola@sparksparfums.com")).toBeInTheDocument();
     expect(screen.getByText("+54 9 11 6869 2694")).toBeInTheDocument();
     expect(screen.getByText("Franklin, CABA")).toBeInTheDocument();

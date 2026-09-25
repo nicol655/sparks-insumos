@@ -46,10 +46,14 @@ test("the hero image meets the marquee and the stats sit under the CTAs (003)", 
   expect((statsBox?.y ?? 0)).toBeGreaterThan((ctaBox?.y ?? 0));
 });
 
-test("the clubhouse, commerce strip and footer close the home (002)", async ({ page }) => {
+test("the clubhouse, commerce strip and footer close the home (002 / 006)", async ({ page }) => {
   await page.goto("/es");
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+  await expect(page.getByRole("heading", { name: "Los más pedidos" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Ver todo" })).toHaveAttribute("href", "/es/catalogo");
+  await expect(page.getByRole("heading", { name: "Asesoramiento real" })).toHaveCount(0);
+  await expect(page.locator("[data-home-marquee] li").first()).toHaveClass(/text-\[22px\]/);
   await expect(page.getByRole("heading", { name: "Registrate y comprá distinto." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Crear cuenta" }).first()).toHaveAttribute(
     "href",

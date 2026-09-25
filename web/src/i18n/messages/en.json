@@ -78,19 +78,17 @@
     },
     "families": {
       "title": "By olfactive family",
-      "note": "Choose by how you want to be remembered, not by the label"
+      "note": "Choose by how you want to be remembered, not by the label",
+      "desc": {
+        "ambar-especias": "Warm, sweet, long-lasting.",
+        "florales": "Rose, jasmine, blossom. Luminous.",
+        "gourmand": "Vanilla, coffee, pistachio, praline.",
+        "maderas": "Sandalwood, cedar, oud. Elegant."
+      }
     },
     "featured": {
-      "title": "Featured",
-      "note": "What people are taking home"
-    },
-    "services": {
-      "shippingTitle": "We ship nationwide",
-      "shippingBody": "Dispatched within 24 business hours. Cost is confirmed on WhatsApp by destination and volume.",
-      "adviceTitle": "Real advice",
-      "adviceBody": "Tell us what you are looking for: we will send a short shortlist, not the whole catalogue.",
-      "returnsTitle": "Simple exchanges",
-      "returnsBody": "If it is not what you expected, we will sort it. Full rules sit on each product page."
+      "title": "Most requested",
+      "viewAll": "View all"
     },
     "club": {
       "kicker": "Sparks Club",
@@ -124,6 +122,7 @@
     "viewProduct": "View {name}",
     "title": "Catalogue",
     "count": "{count, plural, one {# perfume} other {# perfumes}}",
+    "crumb": "{count, plural, one {Catalogue · # perfume} other {Catalogue · # perfumes}}",
     "results": "Catalogue results",
     "filters": "Filters",
     "closeFilters": "Close filters",
