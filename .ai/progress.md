@@ -1,15 +1,31 @@
 # Progress
 
-## Estado actual · 2026-09-25 — 007 cerrada (T250–T265)
+## Estado actual · 2026-09-25 — 009 cerrada (T287–T292)
 
-Cuentas y sesión en `api/`: registro, login, logout, `GET`/`PATCH`/`PUT`/
-`DELETE /me`, candado `password_change_required` y
-`POST /auth/change-password`. Swagger en `/docs`. ADR 0010 y 0011
-`accepted`. Pytest de la API: 61. Ruff en verde. El gate de `.cursor/verify.json`
-incluye `api-lint` y `api-test`. `web`: 497 tests. El frontend no llama a
-`api/`. Roles, fuera de esta spec.
+[009](specs/009-cuenta-fidelidad/tasks.md) cerrada. `/cuenta` muestra Nivel,
+Cupón activo y Pedidos con `-`, y «Tus pedidos» vacío. El bloque central
+deja de quedar en una tira de 1180px: en pantallas anchas crece
+(`62vw` + gutters) para que el espacio hasta el borde de la pantalla
+sea el de la captura del diseño (~19% por lado). Kicker a 10px / 0.22em,
+título `clamp(32px, 4.2vw, 52px)`, botones a 11px con padding 13×22.
+Enlaces, botones y etiquetas usan `cursor: pointer`. Gate de `web`
+(typecheck, lint, test, build) en verde. `api/` sin cambios.
+T083 sigue bloqueada. `/es/cuenta` sin sesión sigue redirigiendo a
+ingresar, así que el margen nuevo se ve con la sesión abierta.
 
-Siguiente: una spec de roles, o conectar el storefront. T083 sigue bloqueada.
+Siguiente: resto de Fase 2 (sets, checkout).
+
+## Sesión 24 · 2026-09-25 — plan 008 cuenta
+
+Prototipo `QUUhcHp24QBtXkUG8sHPDj` releído (login, register, account,
+drawer, diálogo de borrado). Spec + plan en
+`specs/008-cuenta-storefront/`. ADR 0012: bearer en cookie httpOnly;
+`sparks_signed_in` sólo para el chrome.
+
+Rutas que se implementan: `/es/ingresar`, `/es/registro`, `/es/cuenta`
+(inglés `/sign-in`, `/register`, `/account`). No se crean `/registrar`
+ni `/me` como páginas. El alta hace login enseguida porque 007 no
+devuelve token, y ahí sí abre la cuenta.
 
 ## Sesión 23 · 2026-09-25 — tasks 007
 
@@ -455,9 +471,13 @@ El usuario aprobó spec y plan el 2026-09-22.
 
 ## Próximo paso
 
-[007](./specs/007-api-autenticacion/tasks.md) está cerrada (T250–T265).
-El frontend no se conecta en esta rebanada. Lo que sigue es una spec de
-roles, o enlazar el storefront con `api/`.
+[009](./specs/009-cuenta-fidelidad/tasks.md) cerrada (T287–T292).
+[008](./specs/008-cuenta-storefront/tasks.md) cerrada (T270–T286).
+[007](./specs/007-api-autenticacion/tasks.md) sigue cerrada (T250–T265).
+El bloque de `/cuenta` en pantallas anchas ya no se queda en 1180px:
+crece para dejar el mismo aire lateral que la captura del diseño.
+Siguiente: resto de Fase 2 (sets, checkout). La UI de cambio de clave
+sigue fuera.
 
 **T083** sigue bloqueada hasta que existan reglas de cupón (pregunta abierta 4 de la spec).
 
@@ -465,6 +485,6 @@ El repositorio **sigue sin ningún commit**.
 
 ## Pendientes de contexto
 
-`architecture.md` describe la API de cuentas de 007 como código ya hecho.
+`architecture.md` describe la API de cuentas de 007 y el storefront de 008.
 Standalone / Full stack / PRE deploy siguen vacíos: no hay pipeline de publish.
-`web/` no se conecta a `api/` en esta rebanada.
+La cuenta llama a `api/` por server actions. El catálogo sigue en fixtures.

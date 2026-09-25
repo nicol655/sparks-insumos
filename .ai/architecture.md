@@ -2,12 +2,12 @@
 
 ## Overview
 
-Un storefront de Next.js (`web/`) que hoy se sirve solo. `api/` tiene cuentas y
-sesión de `specs/007-api-autenticacion/` (registro, login, logout, `/me`,
-cambio de clave, Swagger) y Postgres en Compose. El catálogo sigue contra el
-contrato de `web/src/lib/api/contract.ts`. La apuesta
-central no cambia: el frontend se construye **contra un contrato, no contra un backend**, de modo
-que conectar `api/` no reescriba componentes.
+Un storefront de Next.js (`web/`). La cuenta (spec 008) llama a `api/`
+desde server actions: login, registro, `/me` y logout. El bearer queda en
+la cookie httpOnly `sparks_session`. El catálogo sigue contra el
+contrato de `web/src/lib/api/contract.ts` y, con `API_MODE=mock`, en fixtures.
+La apuesta central no cambia: el frontend se construye **contra un contrato, no contra un backend**, de modo
+que conectar el catálogo a `api/` no reescriba componentes.
 
 ## Components / boundaries
 
@@ -138,7 +138,14 @@ y `sparks_test`. `GET /health` sigue para el healthcheck.
 - `must_change_password`: el login entrega token, y cualquier otra ruta
   autenticada responde 403 `password_change_required` hasta
   `POST /auth/change-password`. El usuario base nace con el flag en true.
-- Swagger en `/docs`. El storefront no se conecta en esta rebanada.
+- Swagger en `/docs`.
+- El storefront llama a esas rutas desde server actions (`web/src/lib/auth/`).
+  `API_MODE` no gobierna la cuenta: siempre usa `API_BASE_URL`. El catálogo
+  sigue en fixtures. El layout no lee cookies; el enlace «Mi cuenta» mira
+  `sparks_signed_in` después de montar.
+- La página de cuenta ([009](specs/009-cuenta-fidelidad/spec.md), ADR-0013)
+  dibuja Nivel, Cupón activo y Pedidos con `-`, y «Tus pedidos» vacío.
+  `GET /me` no trae esos datos. No se inventan.
 
 ### Standalone
 <!-- The concrete pain and the "job" the customer hires the product to do. -->
@@ -160,8 +167,9 @@ En tiempo de build: **ninguna**. Las tipografías están versionadas (ADR-0006) 
 En tiempo de ejecución:
 
 - **wa.me** — el checkout termina en WhatsApp. Sin SDK: sólo un enlace.
-- **`api/`** — cuentas y sesión de 007, más Postgres. El storefront no la llama:
-  mientras `API_MODE=mock`, se sirve solo.
+- **`api/`** — cuentas y sesión. El storefront las usa para ingresar, registrarse
+  y la página de cuenta. El catálogo no: con `API_MODE=mock` los productos
+  salen de fixtures.
 
 No hay pasarela de pago, analítica ni CMS en Fase 1.
 

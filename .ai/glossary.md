@@ -21,6 +21,6 @@ Domain terms as the storefront uses them. Spanish is the default locale (`es-AR`
 - **Defensa del consumidor** — live link to the national form: `https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario`.
 - **Franklin** — published address / showroom (CABA). Pickup and “retiro” copy refer here, not Palermo.
 - **Via Cargo** — the second shipper next to Correo Argentino. Buyer pays; quote by size and weight.
-- **Cuenta** — a person registered on `api/` (spec 007, not built). Identified by email and password. The storefront routes `/registro`, `/ingresar` and `/cuenta` are still unwired.
+- **Cuenta** — a person registered on `api/` (spec 007). Identified by email and password. Storefront pages `/ingresar`, `/registro` and `/cuenta` are live ([008](specs/008-cuenta-storefront/spec.md)). `/me` is the API resource, not a page path.
 - **`active`** — user row flag. `false` means logically deleted: the row stays, login fails, and the email cannot be registered again.
 - **`must_change_password`** — user row flag. Login still issues a session, but every other authenticated call returns 403 `password_change_required` until `POST /auth/change-password`. The bootstrap user is created with this flag set.
