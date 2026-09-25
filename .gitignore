@@ -6,3 +6,10 @@
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Python (api/)
+.venv
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc

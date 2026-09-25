@@ -1,0 +1,42 @@
+[project]
+name = "sparks-api"
+version = "0.1.0"
+description = "Sparks API — cuentas y sesión"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy[asyncio]",
+    "asyncpg",
+    "alembic",
+    "pydantic-settings",
+    "pwdlib[argon2]",
+]
+
+[dependency-groups]
+dev = [
+    "httpx",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+# Bind mounts from Windows mark every file executable, so EXE002 is noise.
+ignore = ["EXE"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]

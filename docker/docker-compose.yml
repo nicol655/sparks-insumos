@@ -1,6 +1,10 @@
 # Full stack orchestration. Never duplicates a service Dockerfile — it references them.
-# The `api` service will be added here once api/ exists.
+# `db` and `api` are defined in api/docker-compose.yml and included here.
+# `web` does not depend on them: `up web` and `--no-deps` stay storefront-only.
 name: sparks
+
+include:
+  - path: ../api/docker-compose.yml
 
 services:
   web:

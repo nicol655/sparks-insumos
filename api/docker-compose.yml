@@ -1,0 +1,59 @@
+# api + Postgres, without the storefront.
+# docker/docker-compose.yml includes this file. Service bodies live here only.
+name: sparks-api
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sparks
+      POSTGRES_PASSWORD: sparks
+      POSTGRES_DB: sparks
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - sparks-pg:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sparks -d sparks"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      - /app/.venv
+    environment:
+      # Bind mounts on Windows do not deliver inotify events reliably.
+      WATCHFILES_FORCE_POLLING: "true"
+      DATABASE_URL: postgresql+asyncpg://sparks:sparks@db:5432/sparks
+      TEST_DATABASE_URL: postgresql+asyncpg://sparks:sparks@db:5432/sparks_test
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@sparksinsumos.com}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-admin123456}
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-21600}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  sparks-pg:
