@@ -5,7 +5,10 @@
 Un storefront de Next.js (`web/`). La cuenta (spec 008) llama a `api/`
 desde server actions: login, registro, `/me` y logout. El bearer queda en
 la cookie httpOnly `sparks_session`. El catálogo sigue contra el
-contrato de `web/src/lib/api/contract.ts` y, con `API_MODE=mock`, en fixtures.
+contrato de `web/src/lib/api/contract.ts`. Con `API_MODE=http` (el
+stack de `docker/docker-compose.yml`) la vidriera lee `GET /products`
+público. Con `mock`, los tests y `web/docker-compose.yml` siguen en
+fixtures.
 La apuesta central no cambia: el frontend se construye **contra un contrato, no contra un backend**, de modo
 que conectar el catálogo a `api/` no reescriba componentes.
 
@@ -15,7 +18,7 @@ que conectar el catálogo a `api/` no reescriba componentes.
 |------|-------|-----------------|
 | Tokens de diseño | `web/src/styles/theme.css` | Única fuente de colores, tipografía, espaciado y breakpoints. La paleta y los radios de Tailwind están **reemplazados**, no extendidos |
 | Contrato de datos | `web/src/lib/api/contract.ts` | Esquemas Zod de los que se **infieren** los tipos. Es lo que `api/` deberá cumplir |
-| Repositorio | `web/src/lib/api/` | `CatalogRepository` con dos implementaciones: `mock-repository` (fixtures) y `http-repository` (valida cada respuesta contra el contrato). `API_MODE` elige |
+| Repositorio | `web/src/lib/api/` | `CatalogRepository` con dos implementaciones: `mock-repository` (fixtures) y `http-repository` (mapea el JSON público de 017 al contrato). `API_MODE` elige |
 | Estado | `web/src/lib/cart/`, `web/src/lib/ui/` | Carrito persistido (sólo referencias) y overlays. Zustand |
 | i18n | `web/src/i18n/`, `web/src/proxy.ts` | Locales, rutas traducidas, diccionarios |
 | UI | `web/src/components/`, `web/src/app/[locale]/` | Nunca llaman a `fetch` ni importan fixtures: pasan por el repositorio |
@@ -41,9 +44,11 @@ The `docker/` folder only orchestrates the full stack. It references each servic
 
 ## Domain resources (selected)
 
-- **Product** — marca, nombre, familia olfativa, concentración, tamaño, precio en ARS entero,
-  pirámide de notas (salida/corazón/fondo), stock, imágenes. Marca y nombre son nombres propios y
-  no se traducen; familia y concentración viajan como slug y se traducen en el diccionario.
+- **Product** — en la vidriera: marca, nombre, familia olfativa, tamaño en ml,
+  precio en ARS entero e imágenes. El GET anónimo no trae costo, sku, código,
+  descuento ni medidas. Notas, concentración y stock no se persisten: el
+  mapeo los deja vacíos o null. Familia es uno de cuatro slugs
+  (`ambar-especias`, `florales`, `gourmand`, `maderas`).
 - **Facets** — valores disponibles de familia, marca y tamaño con su recuento, más el rango de
   precios. Alimentan la barra lateral del catálogo.
 - **CartItem** — `{productId, slug, quantity}`. Es lo único que se guarda; el precio se recalcula
@@ -60,14 +65,24 @@ repositorio → `API_MODE` decide si salen de fixtures o de `api/`.
 ### Catálogo
 
 Los filtros viven en la URL (`family`, `brand`, `size`, `priceMin`, `priceMax`, `q`, `sort`).
-La página RSC los parsea con `fromSearchValues` y pide `listProducts` + `getFacets`. Cada chip
-es un `Link` al query siguiente — `router.replace` descarta el search en este pathname
+En `http` esa query viaja tal cual a `GET /products`; la grilla no filtra
+otra vez. El orden es `name-asc` (default), `name-desc`, `price-asc`,
+`price-desc`. La página RSC los parsea con `fromSearchValues` y pide
+`listProducts` + `getFacets`. Cada chip es un `Link` al query siguiente — `router.replace` descarta el search en este pathname
 (ADR-0007). Una combinación que vaciaría la grilla se atenúa al 40% y no es enlace.
 
 ### Ficha
 
-`/catalogo/[slug]` pide `getProduct` + `getRelated`. Galería y compra son cliente (miniaturas,
-stepper); el resto es RSC. El listado vive en `catalogo/(grid)/` para que su `loading.tsx` no
+`/catalogo/[slug]` pide `getProduct` + `getRelated`. El layout es el de
+`isProduct` en el artefacto de la vidriera
+([018](specs/018-ficha-producto/spec.md),
+[ADR-0025](decisions/0025-ficha-sin-datos-inventados.md)). Nombre,
+descripción, precio, marca, familia, tamaño y fotos salen del
+contrato. Sin notas no hay pirámide. Sin un número de stock no dice
+«En stock». En `http` el slug es el uuid y `getRelated` vuelve `[]`:
+la sección «También te puede gustar» queda con el empty state.
+Galería y compra son cliente (miniaturas, stepper); el resto es RSC.
+El listado vive en `catalogo/(grid)/` para que su `loading.tsx` no
 envuelva la ficha.
 
 ### Carrito
@@ -139,13 +154,63 @@ y `sparks_test`. `GET /health` sigue para el healthcheck.
   autenticada responde 403 `password_change_required` hasta
   `POST /auth/change-password`. El usuario base nace con el flag en true.
 - Swagger en `/docs`.
+- La auditoría ([012](specs/012-auditoria/spec.md), ADR-0017) está en el
+  código: tabla `audits`, decorator opt-in `audited`, y `GET /audits` más
+  `GET /audits/{audit_id}`. Las rutas de cuenta no lo llaman. El
+  catálogo de [013](specs/013-productos/spec.md) sí: cada CRUD exitoso
+  de productos, categorías y tags escribe una fila.
 - El storefront llama a esas rutas desde server actions (`web/src/lib/auth/`).
   `API_MODE` no gobierna la cuenta: siempre usa `API_BASE_URL`. El catálogo
   sigue en fixtures. El layout no lee cookies; el enlace «Mi cuenta» mira
   `sparks_signed_in` después de montar.
+- Productos, categorías y tags ([013](specs/013-productos/spec.md),
+  ADR-0018) tienen CRUD autenticado. Las fotos se suben por un puerto.
+  boto3 usa el bucket y las claves de `api/.env`. En pytest, un doble
+  en memoria. No reemplazan el contrato de la vidriera
+  (`web/src/lib/api/contract.ts`).
 - La página de cuenta ([009](specs/009-cuenta-fidelidad/spec.md), ADR-0013)
   dibuja Nivel, Cupón activo y Pedidos con `-`, y «Tus pedidos» vacío.
   `GET /me` no trae esos datos. No se inventan.
+
+### Backoffice (010)
+
+Servicio `backoffice/`, contenedor `sparks-backoffice`, puerto de host
+`BACKOFFICE_PORT` (3200). No comparte la cookie `sparks_session`.
+
+- `POST /auth/login` sale de una server action hacia `API_BASE_URL`.
+- El bearer queda en Zustand, clave `sparks-backoffice-session` de
+  `sessionStorage` (ADR-0014).
+- `AuthGate` espera a rehidratar y aplica `decideRedirect`: sin token, a
+  `/unauthorized`; con token, `/login` y `/` van a `/dashboard`.
+- Con sesión, `(panel)` muestra el menú, el encabezado, el resumen
+  en `/dashboard` y los ajustes en `/ajustes`. El texto es fijo
+  ([011](specs/011-backoffice-cascaron/spec.md), ADR-0016). No llama
+  a `GET /me`. Pedidos, mensajes, cupones y contenido sólo tienen
+  título. `/usuarios` lista las cuentas de 007 y abre el cajón de alta
+  y el de edición
+  ([019](specs/019-usuarios-backoffice/spec.md),
+  [ADR-0026](decisions/0026-usuarios-del-panel-sin-datos-inventados.md)).
+  La pestaña Equipo queda vacía. Nivel, pedidos, gasto y notas se ven
+  y no se guardan. El navegador llama a `/api/users` y esa ruta reenvía
+  a `API_BASE_URL` con el bearer. Un 401 cierra la sesión.
+- `/catalogo` lista los productos de 013 y `/catalogo/nuevo` los crea
+  ([014](specs/014-catalogo-backoffice/spec.md), ADR-0019). El layout es
+  el del artefacto (ADR-0021): filtros, grilla y cajón. Familia y tamaño
+  se guardan (`family`, `size_ml`; ADR-0024). Stock, «Para» y la
+  descripción en inglés se ven y no se guardan. El cajón no
+  muestra la pirámide. Cada cuadro de foto elige un archivo, lo
+  previsualiza y corta el nombre dejando la extensión
+  ([015](specs/015-cajon-fotos-sin-piramide/spec.md), ADR-0022). El listado
+  muestra la primera foto con `photo_urls` (GET firmado, una hora).
+  «Editar» abre ese cajón con los datos guardados y hace `PATCH`.
+  Publicado manda sólo `visibility`. La papelera y el reemplazo viajan
+  como `photo_slots` y borran en el bucket al guardar
+  ([016](specs/016-edicion-producto/spec.md), ADR-0023). El navegador
+  llama a `/api/catalog/...` en el panel; esa ruta reenvía a
+  `API_BASE_URL` con el bearer (`Authorization` o `x-sparks-token`,
+  ADR-0020). Un 401 cierra la sesión y vuelve a `/login`. La foto se
+  cuenta, y además se ve la miniatura.
+- Los tests de unidad no levantan `api`. El gate usa `--no-deps`.
 
 ### Standalone
 <!-- The concrete pain and the "job" the customer hires the product to do. -->
@@ -167,9 +232,10 @@ En tiempo de build: **ninguna**. Las tipografías están versionadas (ADR-0006) 
 En tiempo de ejecución:
 
 - **wa.me** — el checkout termina en WhatsApp. Sin SDK: sólo un enlace.
-- **`api/`** — cuentas y sesión. El storefront las usa para ingresar, registrarse
-  y la página de cuenta. El catálogo no: con `API_MODE=mock` los productos
-  salen de fixtures.
+- **`api/`** — cuentas, sesión y, con `API_MODE=http`, el catálogo.
+  `GET /products` y `GET /products/{id}` no piden sesión. Sin bearer el
+  cuerpo es público (sólo `visible`, sin costo). El home y `/catalogo`
+  se arman en cada pedido para no congelar el listado en el build.
 
 No hay pasarela de pago, analítica ni CMS en Fase 1.
 
