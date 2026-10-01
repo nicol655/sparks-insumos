@@ -1,246 +1,206 @@
 # Business Model
 
-Fuente de la tienda viva, leída el 2026-09-23:
+Source of the live store, read on 2026-09-23:
 [sparksinsumos.com](https://sparksinsumos.com/) (Tiendanube, store `003/241/961`).
 
-Fuente de la operación interna, leída el 2026-09-28:
+Source of internal operation, read on 2026-09-28:
 [backoffice](https://claude.ai/artifact/NtzZJG94zfZrj3LpMvAtS9).
-Es la **única** fuente de diseño del backoffice. Las filas de ejemplo
-(clientes, pedidos `SP-…`, cupones, serie de ventas, CBU) son relleno de
-la maqueta. No son clientes, códigos ni una cuenta bancaria reales.
+It is the **only** source of design for the backoffice. The rows of examples
+(customers, orders `SP-…`, coupons, sales series, CBU) are filled in from the
+mockup. They are not real customers, codes, or a real bank account.
 
-`web/` reemplaza la Tiendanube. `backoffice/` es la herramienta con la que
-el equipo opera esa tienda.
+`web/` replaces Tiendanube. `backoffice/` is the tool with which the team operates that store.
 
 ## Value proposition
 
-Sparks Mayorista vende **insumos de belleza al por mayor** (perfumes árabes y
-de inspiración, maquillaje, skincare y accesorios) a revendedoras y comercios
-de toda Argentina, con piso de compra, descuento por volumen, precio de socio
-y envío nacional.
+Sparks Mayorista sells **beauty supplies to wholesale buyers** (arabic perfumes and inspiration, makeup, skincare and accessories) to beauty retailers and stores across Argentina, with a purchase floor, volume discount, member price, and national shipping.
 
-Frase de la home viva: «Belleza y estilo al mejor precio». Quiénes Somos:
-«Insumos de belleza que potencian tu negocio».
+Home page live quote: "Beauty and style at the best price". Who We Are:
+"Beauty supplies that enhance your business".
 
-El equipo no opera en el admin de Tiendanube. Opera en el backoffice:
-pedidos, stock, clientes, cupones, mensajes del formulario, textos del sitio
-y las reglas de compra.
+The team does not operate in Tiendanube's admin. They operate in the backoffice:
+orders, stock, customers, coupons, form messages, site text, and purchase rules.
 
 ## Customer segments
 
-- **Comprador (B2B):** revendedoras y negocios de belleza de todo el país.
-  Quiénes Somos: «Hace 3 años trabajamos con revendedoras y negocios de todo
-  el país.»
-- **Socio (Sparks Club):** cuenta con 5% off permanente, preventas y cupón
-  de bienvenida. En el backoffice el nivel se llama Club.
-- **Invitado:** cuenta sin ese 5%. Puede comprar. No es socio.
-- **Usuario final:** quien usa o revende el producto. El maquillaje de la
-  tienda viva se envía en **tonos surtidos**.
-- **Equipo:** operadores del backoffice. No son clientes. Tres roles:
-  Administración, Logística, Contenido.
+- **Buyer (B2B):** beauty retailers and stores across all of Argentina.
+  Who We Are: "Three years ago we worked with beauty retailers and stores across all of Argentina."
+- **Member (Sparks Club):** has a permanent 5% discount, exclusive sales, and welcome coupon. In the backoffice, the level is called Club.
+- **Guest:** does not have that 5%. Can buy. Not a member.
+- **End-user:** who uses or sells the product. The makeup from the live store is sent in **various shades**.
+- **Team:** operators of the backoffice. Not customers. Three roles:
+  Administration, Logistics, Content.
 
 ## Problem / jobs-to-be-done
 
-Comprador:
+Buyer:
 
-- Reponer stock de belleza sin ir a un mayorista físico.
-- Armar un pedido que llegue a cualquier provincia, pagando envío a cotizar.
-- Comprar por encima del piso y acceder al descuento por monto y, si es
-  socio, al 5% permanente.
-- Consultar stock, tonos y el pedido por WhatsApp cuando el catálogo no alcanza.
+- Restock beauty supplies without having to go to a physical majorist.
+- Place an order that arrives anywhere in the province, paying shipping on request.
+- Buy above the purchase floor and access volume discount, and if a member, the permanent 5% discount.
+- Check stock, shades, and the order by WhatsApp when the catalog does not suffice.
 
-Equipo:
+Team:
 
-- Ver ventas, pedidos con pago pendiente, stock bajo y mensajes sin responder.
-- Llevar un pedido de pago pendiente a entregado, con tracking.
-- Publicar o corregir una referencia (precio, stock, textos en español e
-  inglés, pirámide, fotos).
-- Dar de alta un cliente, pasarlo a Club o bloquear la cuenta.
-- Crear un cupón, contestar el formulario y publicar la portada.
+- View sales, pending payment orders, low stock, and unanswered messages.
+- Take a pending payment order to delivered, with tracking.
+- Publish or correct a reference (price, stock, text in Spanish and English, pyramid, photos).
+- Add a customer, upgrade them to Club, or block the account.
+- Create a coupon, respond to the form, and publish the cover.
 
 ## Solution & key features
 
-### Tienda viva
+### Live Store
 
-Cuatro familias en sparksinsumos.com: perfumes (árabes, inspiración, sets),
-maquillaje, cuidado facial y corporal, accesorios. Retiro en **Franklin**.
-Envíos Correo Argentino y Via Cargo, a cargo del comprador. WhatsApp
-`5491168692694`. Redes `@sparks.insumos`.
+Four families on sparksinsumos.com: perfumes (arabic, inspiration, sets), makeup, skincare and body care, accessories. Pickup at **Franklin**.
+Shipping by Correo Argentino and Via Cargo, at the buyer's expense. WhatsApp
+`5491168692694`. Social media `@sparks.insumos`.
 
-`web/` recorta la vidriera a **perfumería** y cierra el pedido por WhatsApp
-hasta que existan los ajustes de pago en la API.
+`web/` cuts the storefront to **perfumeria** and closes the order via WhatsApp until there are payment adjustments in the API.
 
 ### Backoffice
 
-Navegación del diseño (tres grupos):
+Navigation of design (three groups):
 
-| Grupo | Secciones |
+| Group | Sections |
 |-------|-----------|
-| Operación | Resumen, Pedidos, Catálogo, Mensajes |
-| Clientes | Usuarios (clientes y equipo), Cupones |
-| Sitio | Contenido, Ajustes |
+| Operation | Summary, Orders, Catalog, Messages |
+| Customers | Users (customers and team), Coupons |
+| Site | Content, Adjustments |
 
-**Resumen.** Ventas del período (7 / 14 / 30 días), pedidos, ticket
-promedio, socios del club. Pedidos recientes, stock bajo, mensajes sin
-responder. Búsqueda global de pedidos, productos y clientes.
+**Summary.** Sales for the period (7 / 14 / 30 days), orders, average ticket, club members. Recent orders, low stock, unanswered messages. Global search of orders, products, and customers.
 
-**Pedidos.** Estados: pago pendiente, preparando, enviado, entregado,
-cancelado. Pago: tarjeta, transferencia o efectivo. Enviado y entregado
-llevan tracking. Exportar CSV. El operador cambia estado y tracking; el
-diseño arma un WhatsApp al cliente.
+**Orders.** Statuses: pending payment, preparing, shipped, delivered, canceled. Payment methods: credit card, transfer, or cash on pickup. Shipped and delivered have tracking. Export to CSV. The operator changes status and tracking; the design builds a WhatsApp message for the customer.
 
-**Catálogo** (el del diseño, no las cuatro familias de Tiendanube):
+**Catalog** (the one from the design, not the four families of Tiendanube):
 
-| Eje | Valores |
+| Axis | Values |
 |-----|---------|
-| Categoría | Perfume, Set, Body splash |
-| Familia | Ámbar & especias, Floral, Gourmand, Maderas, Fresco & acuático |
-| Para | Mujer, Hombre, Unisex |
-| Stock | Unidades. **Bajo** = 1 a 3. **Agotado** = 0 |
-| Visibilidad | Publicado o borrador |
-| Texto | Descripción en español y en inglés. Sin inglés, el sitio en inglés muestra el español |
-| Pirámide | Salida, corazón, fondo |
-| Fotos | Packshot frontal, atomizador, notas, lifestyle |
+| Category | Perfume, Set, Body splash |
+| Family | Amber & spices, Floral, Gourmand, Woods, Fresh & aquatic |
+| For | Woman, Man, Unisex |
+| Stock | Units. **Low** = 1 to 3. **Out of stock** = 0 |
+| Visibility | Published or draft |
+| Text | Description in Spanish and English. Without English, the site in English shows the Spanish |
+| Pyramid | Output, heart, background |
+| Photos | Front packshot, atomizer, notes, lifestyle |
 
-**Usuarios.** Clientes: nombre, apellido, email, teléfono, nivel
-(Club o Invitado), estado (activa o bloqueada), notas internas. El equipo
-se invita aparte. Borrar un cliente, en el diseño, borra también historial,
-nivel y cupones.
+**Users.** Customers: name, last name, email, phone, level (Club or Guest), status (active or blocked), internal notes. The team is invited separately. Deleting a customer also deletes the history, level, and coupons.
 
-**Cupones.** Código, porcentaje o monto fijo en ARS, límite de usos
-(0 = sin límite), vencimiento, solo socios o todos, activo o pausado.
-Los códigos dibujados en la maqueta no se publican.
+**Coupons.** Code, percentage or fixed amount in ARS, usage limit (0 = no limit), expiration date, for members only or all, active or paused.
+The codes drawn on the mockup are not published.
 
-**Mensajes.** Bandeja del formulario. Sin responder o respondido. Respuesta
-por el panel o por WhatsApp.
+**Messages.** Inbox of the form. Unanswered or answered. Respond via panel or WhatsApp.
 
-**Contenido.** Barra de anuncio, portada y bloque Sparks Club, en español
-y en inglés. Destacados de la home: **máximo 4**, sólo publicados.
+**Content.** Banner ad, cover and Sparks Club block, in Spanish and English. Home highlights: **maximum 4**, only published.
 
-**Ajustes** (defaults del diseño, 2026-09-28):
+**Adjustments** (defaults from the design, 2026-09-28):
 
-| Campo | Default |
+| Field | Default |
 |-------|---------|
-| Nombre | Sparks Parfums |
+| Name | Sparks Parfums |
 | Email | `hola@sparksparfums.com` |
 | WhatsApp | `+54 9 11 6869 2694` |
-| Retiro | Franklin, CABA · retiro con turno |
-| Compra mínima | $30.000 |
-| Despacho | 24/48 h hábiles |
-| Transportes | Correo Argentino · transporte a cotizar |
-| Nivel 1 | 5% desde $100.000 |
-| Nivel 2 | 10% desde $300.000 |
-| Socio | 5% off permanente |
-| Pagos | Tarjeta hasta 3 cuotas sin interés, transferencia, efectivo al retirar. Las tres, habilitadas |
-| Idiomas | Español publicado (defecto) e inglés publicado |
-| Moneda | ARS |
+| Pickup | Franklin, CABA · pickup with appointment |
+| Minimum purchase | $30.000 |
+| Delivery | 24/48 hours business days |
+| Transporters | Correo Argentino · transport to quote |
+| Level 1 | 5% from $100.000 |
+| Level 2 | 10% from $300.000 |
+| Member | **Permanent 5% discount** |
+| Payments | Credit card up to 3 interest-free installments, transfer, cash on pickup. All three are enabled |
+| Languages | Spanish published (default) and English published |
+| Currency | ARS |
 
-El CBU que muestra la maqueta es de relleno. No es una cuenta a publicar.
+The CBU shown in the mockup is placeholder. It is not an account to be published.
 
 ### Roles
 
-| Sección | Administración | Logística | Contenido |
+| Section | Administration | Logistics | Content |
 |---------|----------------|-----------|-----------|
-| Pedidos | Total | Total | — |
-| Catálogo y stock | Total | Solo stock | Textos e imágenes |
-| Usuarios | Total | Lectura | — |
-| Cupones | Total | — | — |
-| Contenido | Total | — | Total |
-| Ajustes | Total | — | — |
+| Orders | Total | Total | — |
+| Catalog and stock | Total | Only stock | Texts and images |
+| Users | Total | Read-only | — |
+| Coupons | Total | — | — |
+| Content | Total | — | Total |
+| Adjustments | Total | — | — |
 
-Una cuenta de la tienda no es un operador.
+A store account is not an operator.
 
 ## Revenue model & pricing
 
-Venta de mercadería en **ARS**. Sin suscripción.
+Sale of merchandise in **ARS**. No subscription.
 
-| Regla | Monto | Dónde está escrito |
+| Rule | Amount | Where it is written |
 |-------|--------|--------------------|
-| Mínimo de compra, sin envío | **$30.000** | Carrito vivo y ajustes del backoffice |
-| Mínimo en Quiénes Somos | $50.000 | Página viva, desactualizada. No rige |
-| 5% automático | desde $100.000 | Barra viva y ajustes |
-| 10% automático | desde $300.000 | Barra viva y ajustes |
-| Socio del club | **5% permanente** | Ajustes del backoffice |
-| Cupón | % o monto fijo, con tope, vencimiento y alcance | Lo crea el equipo. No hay códigos vivos |
+| Minimum purchase, no shipping | **$30.000** | Live cart and backoffice adjustments |
+| Minimum in Who We Are | $50.000 | Outdated live page. Does not apply |
+| 5% automatic | from $100.000 | Live bar and adjustments |
+| 10% automatic | from $300.000 | Live bar and adjustments |
+| Club member | **Permanent 5% discount** | Backoffice adjustments |
+| Coupon | % or fixed amount, with limit, expiration date, and scope | Created by the team. No live codes |
 
-El diseño no dice si un cupón se suma al 5/10% ni al 5% de socio. Hasta
-que exista esa regla, **no se acumulan**.
+The design does not state whether a coupon adds to the 5/10% or the 5% of member. Until there is such a rule,
+**no accumulation**.
 
-Medios de pago que el diseño deja habilitados: tarjeta (hasta 3 cuotas sin
-interés), transferencia y efectivo al retirar. Apagar uno en Ajustes lo
-saca del checkout. No hay pasarela implementada: el storefront sigue
-cerrando por WhatsApp.
+Payment methods enabled in the design: credit card (up to 3 interest-free installments), transfer, and cash on pickup. Turning off one in Adjustments removes it from the checkout. There is no payment gateway implemented: the storefront continues closing via WhatsApp.
 
-Precios de lista en la tienda viva (muestra 2026-09-23): miniaturas
-~$6.800; EDP 100 ml ~$24.000–$48.000; sets 4–5 pcs ~$34.000.
+List prices in the live store (as of 2026-09-23): miniatures ~$6.800; EDP 100 ml ~$24.000–$48.000; sets 4–5 pcs ~$34.000.
 
 ## Key metrics (North Star + supporting)
 
-La tienda no publica KPIs. El resumen del backoffice fija cuáles mira el
-equipo. Los números de la maqueta (barras, «▲ 3,9%», «2 altas») no son
-medición.
+The store does not publish KPIs. The backoffice summary fixes which the team monitors. The numbers in the mockup (bars, «▲ 3,9%», «2 ups») are not measurements.
 
-- **North Star:** ventas del período (importe de pedidos no cancelados).
-- **Supporting:** cantidad de pedidos, ticket promedio, socios del club,
-  pedidos en pago pendiente, referencias con stock ≤ 3, mensajes sin
-  responder.
+- **North Star:** sales for the period (total value of orders not canceled).
+- **Supporting:** number of orders, average ticket, club members,
+  pending payment orders, references with stock ≤ 3, unanswered messages.
 
 ## Market & competition
 
-Hoy: Tiendanube + WhatsApp + redes. Alternativa del comprador: Mercado
-Libre y otros mayoristas de perfume árabe, réplica e insumos. La web no
-nombra competidores. Diferencia declarada: piso para emprender, envío
-nacional, mix de la tienda viva, showroom Franklin, trato por WhatsApp.
+Today: Tiendanube + WhatsApp + social media. Alternative buyer: Mercado
+Libre and other perfume arabic, replica and supplies retailers. The web does not
+name competitors. Declared difference: purchase floor, national shipping, mix of the live store,
+Franklin showroom, service via WhatsApp.
 
 ## Constraints & compliance
 
-Identidad fiscal (footer vivo, 2026): **Sparks Insumos**, CUIT
-**20-95827720-3**, tel `011 6869-2694`, domicilio Franklin (CABA).
-Email de la Tiendanube: `sparksinsumos@gmail.com`. Email del sistema
-nuevo (ajustes): `hola@sparksparfums.com`.
+Tax identity (footer vivo, 2026): **Sparks Insumos**, CUIT
+**20-95827720-3**, tel `011 6869-2694`, address Franklin (CABA).
+Tiendanube email: `sparksinsumos@gmail.com`. New system email (adjustments): `hola@sparksparfums.com`.
 
-Consumidor (Ley 24.240). Destinos ya usados, no inventar otros:
+Consumer (Ley 24.240). Destinations already used, do not invent others:
 
-- Defensa: [formulario nacional](https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario)
-- Arrepentimiento: [contacto + cancelación](https://sparksinsumos.com/contacto/?order_cancellation_without_id=true)
+- Defense: [national consumer protection form](https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario)
+- Refund: [contact + cancellation](https://sparksinsumos.com/contacto/?order_cancellation_without_id=true)
 
-Si el SKU es inspiración o réplica 1:1, la ficha lo dice. No atribuir la
-venta a la casa de diseñador.
+If the SKU is inspiration or replica 1:1, the UI indicates it. Do not attribute
+sales to the designer's house.
 
-Cookies: la tienda viva muestra banner de consentimiento.
+Cookies: the live store shows a consent banner.
 
 ## Go-to-market
 
-- Sitio vivo: `sparksinsumos.com`, hasta que `web/` lo reemplace.
-- Redes: Instagram, Facebook y TikTok `@sparks.insumos`.
-- WhatsApp de consultas: el número de Ajustes. Hoy `5491168692694`.
-- Newsletter en la tienda viva.
-- Showroom: Franklin, retiro con turno.
-- Posicionamiento de la vidriera nueva: Sparks Parfums, editorial, bilingüe
-  es-AR / en. El backoffice edita esos textos.
+- Live site: `sparksinsumos.com`, until `web/` replaces it.
+- Social media: Instagram, Facebook and TikTok `@sparks.insumos`.
+- WhatsApp for inquiries: the number in Adjustments. Today `5491168692694`.
+- Newsletter on the live store.
+- Showroom: Franklin, pickup with appointment.
+- Positioning of the new storefront: Sparks Parfums, editorial, bilingual
+  es-AR / en. The backoffice edits those texts.
 
 ## Risks & assumptions
 
-- **Quiénes Somos dice $50.000.** Rige el mínimo del carrito y de Ajustes:
+- **Who We Are says $50.000.** Applies to the minimum cart and adjustments:
   **$30.000**.
-- **«Desde 2019»** (portada del diseño) contra **«hace 3 años»** en Quiénes
-  Somos. No hay un año fundacional único.
-- **Acumulación.** Cupón, 5/10% por monto y 5% de socio están los tres en
-  el diseño. No dice si se suman. No se acumulan hasta que haya una regla.
-- **Tarjeta.** Ajustes la deja habilitada (hasta 3 cuotas). No hay pasarela.
-  El storefront no cobra con tarjeta hasta que esos ajustes vivan en la API.
-- **CBU de la maqueta.** Placeholder. No publicarlo.
-- **Via Cargo** sigue nombrado en la tienda viva. El texto default de
-  Ajustes dice «Correo Argentino · transporte a cotizar» y no nombra a
-  Via Cargo. El campo es editable.
-- **Catálogo del backoffice** es perfumería (perfume, set, body splash).
-  Maquillaje, skincare y accesorios siguen en la tienda viva y no tienen
-  pantalla en este diseño.
-- **Filas de la maqueta** no se siembran como datos.
-- **Spec 010** deja entrar a cualquier cuenta de la tienda. El diseño ya
-  exige rol. La spec de roles todavía no está escrita.
+- **"Since 2019"** (cover of the design) against **"three years ago"** in Who We Are. No unique founding year.
+- **Accumulation.** Coupon, 5/10% by amount and 5% of member are all three in the design. It does not state if they accumulate. They do not accumulate until there is a rule.
+- **Credit card.** Adjustments leaves it enabled (up to 3 installments). No payment gateway. The storefront does not accept credit card payments until those adjustments live in the API.
+- **CBU of the mockup.** Placeholder. Do not publish it.
+- **Via Cargo** still named in the live store. Default text in Adjustments says «Correo Argentino · transport to quote» and does not name Via Cargo. The field is editable.
+- **Backoffice catalog** is perfumería (perfume, set, body splash). Makeup, skincare and accessories remain on the live store and do not have a screen in this design.
+- **Rows of the mockup** are not planted as data.
+- **Spec 010** allows any account from the store. The design already requires role. The spec for roles is still not written.
 
 ## Glossary link
 
-Términos en `glossary.md`. Piso, descuentos, pagos, roles, stock y estados
-de pedido también en `constitution.md`.
+Terms in `glossary.md`. Floor, discounts, payments, roles, stock and order statuses also in `constitution.md`.
