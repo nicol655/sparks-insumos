@@ -2,7 +2,72 @@
 
 Gotchas no obvios que costaron tiempo. Concretos y accionables.
 
+## Backoffice
+
+### Un 401 del catálogo no debe dejar el token en Zustand
+
+El dashboard no llama a la API. Si `/api/catalog/*` responde 401 y
+`accessToken` sigue distinto de `null`, `decideRedirect` manda `/login` de
+vuelta a `/dashboard`. El operador ve «sin autenticación» y no puede
+entrar de nuevo.
+
+Ese 401 puede ser del propio proxy (`forwardCatalog` no vio bearer) o de
+FastAPI (`No autenticado`). En los dos casos hay que `clearSession()` y
+`replace("/login")`. Si sólo se borra el token, la guarda manda la ruta
+privada a `/unauthorized` y el `replace("/login")` pierde. `preferLogin`
+convierte ese rebote en `/login` (ADR-0020). Un 403 de cambio de clave no
+se borra. El cliente manda el token también en `x-sparks-token` porque el
+route handler a veces no recibe `Authorization` aunque el store sí tenga
+token.
+
+### Next en desarrollo imprime los argumentos de la server action
+
+`next dev` escribe en el log del contenedor la llamada, con el cuerpo:
+
+```txt
+ƒ loginAction({"email":"…","password":"…"})
+```
+
+No es un `console` nuestro (`client.ts` no loguea). En desarrollo, `docker logs sparks-backoffice` muestra la contraseña. No hace falta un log extra. Al mirar esos logs, no pegar el cuerpo en el chat ni en un ticket.
+
+### Una ruta nueva puede quedar en 404 hasta reiniciar `next dev`
+
+Con el bind mount, crear `src/app/(panel)/` mientras `sparks-backoffice` ya está arriba dejó `/dashboard` en 404 aunque el archivo existía. El build de producción sí veía la ruta. `docker restart sparks-backoffice` y esperar el healthcheck.
+
+### `WATCHPACK_POLLING` no recompila Turbopack
+
+El catálogo respondía 200 y la pantalla decía «No pudimos hablar con el catálogo». El JSON traía `photo_urls`. El chunk de cliente seguía con el `strictObject` anterior, sin esa clave, y `safeParse` lo rechazaba.
+
+`WATCHPACK_POLLING` lo lee Webpack. Turbopack usa `watchOptions.pollIntervalMs` en `backoffice/next.config.ts`. Si el bundle ya quedó viejo, hace falta borrar `/app/.next` (volumen anónimo) y reiniciar `sparks-backoffice`. Un restart solo no tira esa caché.
+
 ## API
+
+### La URL firmada tiene que usar el endpoint regional
+
+`generate_presigned_url` sin `endpoint_url` firma
+`bucket.s3.amazonaws.com`. El bucket de `eu-north-1` responde 307 al
+host regional y esa redirección invalida la firma
+(`SignatureDoesNotMatch`). La foto se sube y el GET del navegador
+falla, en la vidriera y en el panel, porque los dos usan `photo_urls`.
+
+`S3Storage` firma contra `https://s3.<region>.amazonaws.com` con
+`s3v4`. No volver al host global.
+
+### No reutilizar el nombre `_read_one`
+
+`products.py` ya tiene `_read_one` como payload de `@audited` en el GET.
+Una función nueva con el mismo nombre lo pisa, y el decorator termina
+llamando al lector de archivos con `result=`. El lector de un upload se
+llama `_read_upload`.
+
+### Compose no puede declarar `AWS_*` vacías
+
+`api/docker-compose.yml` interpolaba `AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}`
+(y el resto). Si el host no las tiene, el contenedor recibe la variable
+presente y vacía. pydantic-settings prefiere el entorno al `.env`, así
+que `api/.env` no llega a boto3. Las credenciales entran sólo por
+`env_file: .env`. No volver a declarar esas cuatro claves en
+`environment`.
 
 ### Alembic desde pytest no puede usar `asyncio.run` en el mismo loop
 
@@ -18,9 +83,35 @@ guarda conexiones de asyncpg atadas al loop anterior y el siguiente request
 revienta con «Future attached to a different loop». En e2e,
 `_point_app_at_test_database()` sustituye ese engine por uno a
 `sparks_test` con `NullPool`, así cada request abre la conexión en el loop
-del test.
+del test. El test tiene que usar `db.SessionLocal` después de esa
+sustitución. Un `from app.db import SessionLocal` al tope del módulo
+queda apuntando al engine original (`sparks`, con pool) y el insert no
+ve la tabla que Alembic creó en `sparks_test`.
+
+### `httpx.AsyncClient` no manda `files=`
+
+En esta versión, `await client.post(..., files=...)` arma un stream
+síncrono y revienta con «Attempted to send an sync request». El e2e
+de productos arma el multipart a mano y lo manda en `content`.
 
 ## Docker
+
+### `API_MODE=http` en el compose del stack no debe gobernar Vitest
+
+`docker/docker-compose.yml` deja el servicio `web` en `http` para que
+la vidriera lea `GET /products`. `npm test` usa ese mismo compose, así
+que el contenedor hereda `API_MODE=http` y el carrito y la búsqueda
+piden `http://api:8000`. `web/vitest.config.mts` fija `API_MODE=mock`:
+los tests siguen en fixtures. `web/docker-compose.yml` también queda
+en `mock`.
+
+### Pytest no migra la base de desarrollo
+
+`alembic upgrade` del conftest corre sobre `sparks_test`. La base
+`sparks` del contenedor `sparks-db-1` se queda atrás y `GET /products`
+responde 500 (`column products.family does not exist`). Hay que
+`docker exec sparks-api-1 uv run alembic upgrade head` y reiniciar
+`sparks-api-1`.
 
 ### El healthcheck de Next debe usar `127.0.0.1`, no `localhost`
 
