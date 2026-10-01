@@ -1,198 +1,178 @@
 # Lessons
 
-Gotchas no obvios que costaron tiempo. Concretos y accionables.
+Obvious gotchas that cost time. Specific and actionable.
 
 ## Backoffice
 
-### Un 401 del catálogo no debe dejar el token en Zustand
+### A 401 from the catalog should not leave the token in Zustand
 
-El dashboard no llama a la API. Si `/api/catalog/*` responde 401 y
-`accessToken` sigue distinto de `null`, `decideRedirect` manda `/login` de
-vuelta a `/dashboard`. El operador ve «sin autenticación» y no puede
-entrar de nuevo.
+The dashboard does not call the API. If `/api/catalog/*` responds with a 401 and `accessToken` is still different from `null`, `decideRedirect` sends the user back to `/login`. The operator sees "not authenticated" and cannot log in again.
 
-Ese 401 puede ser del propio proxy (`forwardCatalog` no vio bearer) o de
-FastAPI (`No autenticado`). En los dos casos hay que `clearSession()` y
-`replace("/login")`. Si sólo se borra el token, la guarda manda la ruta
-privada a `/unauthorized` y el `replace("/login")` pierde. `preferLogin`
-convierte ese rebote en `/login` (ADR-0020). Un 403 de cambio de clave no
-se borra. El cliente manda el token también en `x-sparks-token` porque el
-route handler a veces no recibe `Authorization` aunque el store sí tenga
-token.
+That 401 can be from the proxy (`forwardCatalog` did not see the bearer token) or FastAPI (`Not authenticated`). In both cases, you need to `clearSession()` and `replace("/login")`. If only the token is cleared, the store will send the private route to `/unauthorized`, and the `replace("/login")` will fail. `preferLogin` converts that bounce into `/login` (ADR-0020). A 403 from changing a password does not clear the token. The client sends the token in `x-sparks-token` because the route handler sometimes does not receive `Authorization` even though the store has the token.
 
-### Next en desarrollo imprime los argumentos de la server action
+### Next in development prints the arguments of the server action
 
-`next dev` escribe en el log del contenedor la llamada, con el cuerpo:
+`next dev` writes to the container log the call, with the body:
 
 ```txt
 ƒ loginAction({"email":"…","password":"…"})
 ```
 
-No es un `console` nuestro (`client.ts` no loguea). En desarrollo, `docker logs sparks-backoffice` muestra la contraseña. No hace falta un log extra. Al mirar esos logs, no pegar el cuerpo en el chat ni en un ticket.
+This is not our `console` (`client.ts` does not log). In development, `docker logs sparks-backoffice` shows the password. No extra logging is needed. When looking at those logs, do not paste the body in the chat or a ticket.
 
-### Una ruta nueva puede quedar en 404 hasta reiniciar `next dev`
+### A new route can remain 404 until restarting `next dev`
 
-Con el bind mount, crear `src/app/(panel)/` mientras `sparks-backoffice` ya está arriba dejó `/dashboard` en 404 aunque el archivo existía. El build de producción sí veía la ruta. `docker restart sparks-backoffice` y esperar el healthcheck.
+With the bind mount, creating `src/app/(panel)/` while `sparks-backoffice` is already up left `/dashboard` as 404 even though the file exists. The production build sees the route. Restarting `sparks-backoffice` and waiting for the healthcheck.
 
-### `WATCHPACK_POLLING` no recompila Turbopack
+### `WATCHPACK_POLLING` does not recompile Turbopack
 
-El catálogo respondía 200 y la pantalla decía «No pudimos hablar con el catálogo». El JSON traía `photo_urls`. El chunk de cliente seguía con el `strictObject` anterior, sin esa clave, y `safeParse` lo rechazaba.
+The catalog responded with a 200, but the screen said "We couldn't talk to the catalog". The JSON had `photo_urls`. The client chunk still had the old `strictObject`, without that key, and `safeParse` rejected it.
 
-`WATCHPACK_POLLING` lo lee Webpack. Turbopack usa `watchOptions.pollIntervalMs` en `backoffice/next.config.ts`. Si el bundle ya quedó viejo, hace falta borrar `/app/.next` (volumen anónimo) y reiniciar `sparks-backoffice`. Un restart solo no tira esa caché.
+`WATCHPACK_POLLING` is read by Webpack. Turbopack uses `watchOptions.pollIntervalMs` in `backoffice/next.config.ts`. If the bundle is already stale, you need to delete `/app/.next` (anonymous volume) and restart `sparks-backoffice`. A simple restart does not clear that cache.
 
 ## API
 
-### La URL firmada tiene que usar el endpoint regional
+### The signed URL must use the regional endpoint
 
-`generate_presigned_url` sin `endpoint_url` firma
-`bucket.s3.amazonaws.com`. El bucket de `eu-north-1` responde 307 al
-host regional y esa redirección invalida la firma
-(`SignatureDoesNotMatch`). La foto se sube y el GET del navegador
-falla, en la vidriera y en el panel, porque los dos usan `photo_urls`.
+`generate_presigned_url` without `endpoint_url` signs
+`bucket.s3.amazonaws.com`. The bucket in `eu-north-1` redirects to the regional host and that redirection invalidates the signature
+(`SignatureDoesNotMatch`). The photo uploads, but the GET from the browser fails, both in the storefront and in the panel, because both use `photo_urls`.
 
-`S3Storage` firma contra `https://s3.<region>.amazonaws.com` con
-`s3v4`. No volver al host global.
+`s3v4` signs against `https://s3.<region>.amazonaws.com`. Do not go back to the global host.
 
-### No reutilizar el nombre `_read_one`
+### Do not reuse the name `_read_one`
 
-`products.py` ya tiene `_read_one` como payload de `@audited` en el GET.
-Una función nueva con el mismo nombre lo pisa, y el decorator termina
-llamando al lector de archivos con `result=`. El lector de un upload se
-llama `_read_upload`.
+`products.py` already has `_read_one` as payload of `@audited` in the GET.
+A new function with the same name overwrites it, and the decorator ends up calling the file reader with `result=`. The reader for an upload is called `_read_upload`.
 
-### Compose no puede declarar `AWS_*` vacías
+### Compose cannot declare `AWS_*` empty
 
-`api/docker-compose.yml` interpolaba `AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}`
-(y el resto). Si el host no las tiene, el contenedor recibe la variable
-presente y vacía. pydantic-settings prefiere el entorno al `.env`, así
-que `api/.env` no llega a boto3. Las credenciales entran sólo por
-`env_file: .env`. No volver a declarar esas cuatro claves en
+`api/docker-compose.yml` interpolates `AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}`
+(yet the rest). If the host does not have these, the container receives the variable
+present and empty. pydantic-settings prefers the environment to `.env`, so
+`api/.env` does not reach boto3. The credentials only enter via
+`env_file: .env`. Do not declare those four keys again in
 `environment`.
 
-### Alembic desde pytest no puede usar `asyncio.run` en el mismo loop
+### Alembic from pytest cannot use `asyncio.run` in the same loop
 
-`alembic/env.py` llama a `asyncio.run`. Si un fixture async de pytest-asyncio
-hace `command.upgrade` en el mismo proceso, falla con «this event loop is
-already running». `tests/conftest.py` lanza `alembic upgrade head` en un
-subproceso, con `ALEMBIC_DATABASE_URL` apuntando a `sparks_test`.
+`alembic/env.py` calls to `asyncio.run`. If a pytest-asyncio async fixture
+does `command.upgrade` in the same process, it fails with «this event loop is
+already running». `tests/conftest.py` runs `alembic upgrade head` in a
+subprocess, with `ALEMBIC_DATABASE_URL` pointing to `sparks_test`.
 
-### El engine de la app no puede reusar conexiones entre tests
+### The app engine cannot reuse connections between tests
 
-pytest-asyncio abre un event loop por test. El pool de `app.db.engine`
-guarda conexiones de asyncpg atadas al loop anterior y el siguiente request
-revienta con «Future attached to a different loop». En e2e,
-`_point_app_at_test_database()` sustituye ese engine por uno a
-`sparks_test` con `NullPool`, así cada request abre la conexión en el loop
-del test. El test tiene que usar `db.SessionLocal` después de esa
-sustitución. Un `from app.db import SessionLocal` al tope del módulo
-queda apuntando al engine original (`sparks`, con pool) y el insert no
-ve la tabla que Alembic creó en `sparks_test`.
+pytest-asyncio opens an event loop per test. The pool of `app.db.engine`
+keeps asyncpg connections tied to the previous loop and the next request
+fails with «Future attached to a different loop». In e2e,
+`_point_app_at_test_database()` substitutes that engine by one to
+`sparks_test` with `NullPool`, so each request opens the connection in the test's loop.
+The test has to use `db.SessionLocal` after that substitution. A `from app.db import SessionLocal`
+at the top of the module
+stays pointing at the original engine (`sparks`, with pool) and the insert does not see the table that Alembic created in `sparks_test`.
 
-### `httpx.AsyncClient` no manda `files=`
+### `httpx.AsyncClient` does not send `files=`
 
-En esta versión, `await client.post(..., files=...)` arma un stream
-síncrono y revienta con «Attempted to send an sync request». El e2e
-de productos arma el multipart a mano y lo manda en `content`.
+In this version, `await client.post(..., files=...)` builds a synchronous stream
+and fails with «Attempted to send an sync request». The e2e
+for products builds the multipart manually and sends it in `content`.
 
 ## Docker
 
-### `API_MODE=http` en el compose del stack no debe gobernar Vitest
+### `API_MODE=http` in the stack's compose file should not control Vitest
 
-`docker/docker-compose.yml` deja el servicio `web` en `http` para que
-la vidriera lea `GET /products`. `npm test` usa ese mismo compose, así
-que el contenedor hereda `API_MODE=http` y el carrito y la búsqueda
-piden `http://api:8000`. `web/vitest.config.mts` fija `API_MODE=mock`:
-los tests siguen en fixtures. `web/docker-compose.yml` también queda
-en `mock`.
+`docker/docker-compose.yml` leaves the `web` service in `http` so that
+the storefront reads `GET /products`. `npm test` uses the same compose, so
+the container inherits `API_MODE=http` and the cart and search
+request `http://api:8000`. `web/vitest.config.mts` sets `API_MODE=mock`:
+the tests continue in fixtures. `web/docker-compose.yml` also stays
+in `mock`.
 
-### Pytest no migra la base de desarrollo
+### Pytest does not migrate the development database
 
-`alembic upgrade` del conftest corre sobre `sparks_test`. La base
-`sparks` del contenedor `sparks-db-1` se queda atrás y `GET /products`
-responde 500 (`column products.family does not exist`). Hay que
-`docker exec sparks-api-1 uv run alembic upgrade head` y reiniciar
+`alembic upgrade` from the conftest runs on `sparks_test`. The development
+database `sparks` of the container `sparks-db-1` falls behind and `GET /products`
+responds 500 (`column products.family does not exist`). You need to
+`docker exec sparks-api-1 uv run alembic upgrade head` and restart
 `sparks-api-1`.
 
-### El healthcheck de Next debe usar `127.0.0.1`, no `localhost`
+### The Next healthcheck should use `127.0.0.1`, not `localhost`
 
-`next dev -H 0.0.0.0` escucha **sólo en IPv4**. Dentro del contenedor `localhost` resuelve primero
-a `::1`, así que `wget --spider http://localhost:3000` devolvía «connection refused» de forma
-indefinida, el contenedor quedaba `unhealthy` y el servicio `e2e` abortaba con
+`next dev -H 0.0.0.0` listens **only on IPv4**. Inside the container `localhost` resolves first
+to `::1`, so `wget --spider http://localhost:3000` returned «connection refused» indefinitely, the container was `unhealthy` and the `e2e` service aborted with
 «dependency failed to start».
 
-El síntoma engaña: los logs de Next dicen `✓ Ready` y `Network: http://0.0.0.0:3000`, así que
-parece un problema de arranque cuando en realidad es de resolución de nombres.
+The symptom is misleading: the Next logs say `✓ Ready` and `Network: http://0.0.0.0:3000`, so
+it seems a boot problem when in reality it's name resolution.
 
-Regla: en healthchecks de contenedor, siempre `127.0.0.1`.
+Rule: in container healthchecks, always use `127.0.0.1`.
 
-### El puerto 3000 del host suele estar ocupado
+### The port 3000 on the host is often occupied
 
-Otros proyectos en la misma máquina se lo quedan. Por eso el mapeo es `${WEB_PORT:-3000}:3000` y
-hay `docker/.env.example`. En la máquina de Nico, `WEB_PORT=3100` (el 3000 lo tiene `ads-cloud-web`).
+Other projects on the same machine take it. That's why the mapping is `${WEB_PORT:-3000}:3000` and
+there's `docker/.env.example`. On Nico's machine, `WEB_PORT=3100` (the 3000 is taken by `ads-cloud-web`).
 
 ## Tooling
 
-### Next 16 necesita `next typegen` antes de `tsc --noEmit`
+### Next 16 needs `next typegen` before `tsc --noEmit`
 
-El layout que genera `create-next-app` usa el tipo global `LayoutProps`, que Next produce en
-`.next/types` durante `dev` o `build`. Un `tsc --noEmit` en frío —clon limpio, CI— falla con
-`Cannot find name 'LayoutProps'`. Por eso el script es `next typegen && tsc --noEmit`.
+The layout that generates `create-next-app` uses the global type `LayoutProps`, which Next produces in
+`.next/types` during `dev` or `build`. A `tsc --noEmit` in cold —clon fresh, CI— fails with
+`Cannot find name 'LayoutProps'`. That's why the script is `next typegen && tsc --noEmit`.
 
-### `vitest-axe` está muerto y rompe con Vitest 5
+### `vitest-axe` is dead and breaks with Vitest 5
 
-La versión 0.1.0 (2022) declara sus matchers aumentando el namespace global `Vi`, convención que
-Vitest 5 ya no lee: `Property 'toHaveNoViolations' does not exist`. Mantenerlo obligaba a versionar
-un shim de tipos para un paquete sin mantenimiento, con seis dependencias transitivas detrás.
+The version 0.1.0 (2022) declares its matchers increasing the global namespace `Vi`, convention that
+Vitest 5 no longer reads: `Property 'toHaveNoViolations' does not exist`. Maintaining it would require a type shim for a package without maintenance, with six transitive dependencies behind.
 
-Se usa `axe-core` directamente desde `web/src/test/a11y.ts`. Ver ADR-0005.
+It uses `axe-core` directly from `web/src/test/a11y.ts`. See ADR-0005.
 
-Lección general: cuando un wrapper de testing falla sólo en los tipos, mirar la fecha de su último
-release antes de escribir el shim.
+General lesson: when a testing wrapper fails only in the types, check the last
+release date of its version before writing a type shim.
 
-### `@types/node` debe seguir al runtime, no al andamiaje
+### `@types/node` should follow the runtime, not the playground
 
-`create-next-app` fija `@types/node@^20`, pero la imagen es Node 22 y Vitest 5 pide
-`^22 || >=24`. El resultado es un `ERESOLVE` que invita a usar `--legacy-peer-deps`. La causa real
-era la versión equivocada: subirla a `^22` resuelve el conflicto sin forzar nada.
+`create-next-app` sets `@types/node@^20`, but the image is Node 22 and Vitest 5 asks
+`^22 || >=24`. The result is an `ERESOLVE` that invites to use `--legacy-peer-deps`. The real cause
+was the wrong version: bumping it to `^22` resolves the conflict without forcing anything.
 
-## Tipografía y tokens
+## Typography and tokens
 
-### El presupuesto de fuentes se mide por subset, no por carpeta
+### The budget for fonts is measured by subset, not by folder
 
-`du -sh .next/static/media` daba 369KB contra un objetivo de 180KB, lo que parecía un
-incumplimiento grave. No lo era: `next/font` descarga **todos** los subsets que Google publica
-(griego, cirílico, vietnamita) y genera un `@font-face` con su `unicode-range` para cada uno. Un
-lector en español o inglés sólo baja el subset latino. La cifra real es 120KB.
+`du -sh .next/static/media` gave 369KB against a target of 180KB, which seemed a
+serious breach. It wasn't: `next/font` downloads **all** the subsets that Google publishes
+(greek, cyrillic, vietnamese) and generates an `@font-face` with its `unicode-range` for each one. A reader in Spanish or English only downloads the latin subset. The real figure is 120KB.
 
-Esto dejó de aplicar con ADR-0006: ahora se envía un archivo por cara, subset latino, versionado,
-y `npm run font-budget` sólo mide `src/styles/fonts/` sin construir nada. Se conserva la anécdota
-porque explica por qué una cifra de `du -sh` sobre la salida de un build **no** es el presupuesto.
+This stopped applying with ADR-0006: now a file per face, latin subset, versioned,
+and `npm run font-budget` only measures `src/styles/fonts/` without building anything. We keep the anecdote
+because it explains why a `du -sh` figure on a build output **does not** reflect the budget.
 
-### Prettier pasa los hex de CSS a minúscula
+### Prettier converts CSS hex values to lowercase
 
-El PDF escribe los colores en mayúscula y `theme.css` también, hasta que corre `npm run format`.
-Los tests de tokens comparan sin distinguir mayúsculas: la caja de un hex no significa nada y no
-vale la pena excluir el archivo del formateador por eso.
+The PDF writes colors in uppercase and `theme.css` also, until it runs `npm run format`.
+The token tests compare without distinguishing case: a color box doesn't mean anything and it
+isn't worth excluding the file from formatting for that reason.
 
-### `next/font/google` hacía que el build fallara de forma intermitente — resuelto
+### `next/font/google` was causing intermittent build failures — resolved
 
-Descargaba las fuentes **en cada build**. Uno falló con veinte errores
-`Module not found: Can't resolve '@vercel/turbopack-next/internal/font/google/font'` y
-`next/font/google queries have exactly one entry`; el siguiente, sin cambiar nada, pasó.
+It downloaded the fonts **in each build**. One failed with twenty errors
+`Module not found: Can't resolve '@vercel/turbopack-next/internal/font/google/font'` and
+`next/font/google queries have exactly one entry`; the next, without changing anything, passed.
 
-Resuelto en ADR-0006: los `.woff2` están versionados y se usa `next/font/local`. Si vuelve a
-aparecer un error de red en un build, lo primero es buscar qué lo reintrodujo.
+Resolved in ADR-0006: the `.woff2` are versioned and `next/font/local` is used. If it reappears a build error,
+the first thing to look for is what reintroduced it.
 
-Dos cosas que costó descubrir al migrar:
+Two things that cost discovering on migration:
 
-- La API de Google Fonts devuelve la **TTF completa** si se pide con un user agent antiguo
-  (`Mozilla/4.0`); con uno moderno devuelve woff2 ya troceados por subset. Eso permite recortar un
-  único archivo por cara con `pyftsubset` en vez de tener que unir los trozos de Google.
-- `next/font/local` **no admite `unicode-range` por archivo**: `src` sólo acepta `path`, `weight` y
-  `style`. Dos archivos de la misma familia, peso y estilo colisionan, así que no se pueden servir
-  latin y latin-ext como ficheros separados de una misma familia.
+- The Google Fonts API returns the **TTF complete** if requested with an old user agent
+  (`Mozilla/4.0`); with a modern one, it returns woff2 already chunked by subset. That allows cutting a single file per face with `pyftsubset` instead of having to join the chunks from Google.
+- `next/font/local` **does not accept `unicode-range` per file**: `src` only accepts `path`, `weight` and
+  `style`. Two files of the same family, weight and style collide, so they can't be served
+  latin and latin-ext as separate files of a single family.
 
-Para comprobar que un build ya no depende de la red:
+To check that a build no longer depends on the network:
 
 ```powershell
 docker run --rm --network none -v D:/projects/sparks/web:/app -v /app/node_modules -v /app/.next -w /app sparks-web:latest npm run build
@@ -200,158 +180,155 @@ docker run --rm --network none -v D:/projects/sparks/web:/app -v /app/node_modul
 
 ## i18n
 
-### Un `loading.tsx` padre se come el `notFound()` de la ficha
+### A `loading.tsx` parent swallows the `notFound()` of the page
 
-`catalogo/loading.tsx` envuelve también `/catalogo/[slug]`. Si la ficha llama
-`notFound()`, Next hace stream del skeleton y el fallback de 404 falla en el
-cliente (0 `<h1>`). El listado vive en `catalogo/(grid)/` para que su loading
-no cubra la ficha. La ficha **no** tiene `loading.tsx`: el `notFound()` tiene
-que ganar al stream. Tiene su propio `not-found.tsx`.
+`catalogo/loading.tsx` wraps also `/catalogo/[slug]`. If the page calls
+`notFound()`, Next streams the skeleton and the fallback 404 fails in the
+client (0 `<h1>`). The grid lives in `catalogo/(grid)/` so that its loading
+does not cover the page. The page **does not** have a `loading.tsx`: the `notFound()` has to win over the stream.
+It has its own `not-found.tsx`.
 
-### El layout raíz vive dentro de `[locale]`
+### The root layout lives inside `[locale]`
 
-Con `next-intl` y prefijo de ruta, `app/[locale]/layout.tsx` **es** el layout raíz y no existe
-`app/layout.tsx`. Consecuencia poco obvia: un `notFound()` no tiene dónde renderizarse para rutas
-que no matchean, así que hace falta `app/[locale]/[...rest]/page.tsx` que llame a `notFound()`.
+With `next-intl` and route prefix, `app/[locale]/layout.tsx` **is** the root layout and not exists
+`app/layout.tsx`. A subtle consequence: a `notFound()` does not have anywhere to render for routes that do not match,
+so it needs `app/[locale]/[...rest]/page.tsx` that calls `notFound()`.
 
-Next 16 además deprecó `middleware.ts`; el archivo se llama `proxy.ts` (mismo contenido y misma
-firma).
+Next 16 also deprecated `middleware.ts`; the file is called `proxy.ts` (same content and same
+signature).
 
-### `no-literal-string` en modo `jsx-text-only` no mira los atributos
+### `no-literal-string` in mode `jsx-text-only` does not check attributes
 
-Deja pasar `alt="Frasco"` y `aria-label="Cerrar"`, que es justo el texto que AC-20 vigila. El modo
-correcto es `jsx-only` con `jsx-attributes.include` acotado a los atributos visibles; sin esa
-lista, `jsx-only` marcaría también `className` e `id`.
+It lets pass `alt="Frasco"` and `aria-label="Cerrar"`, which is just the text that AC-20 watches. The correct mode
+is `jsx-only` with `jsx-attributes.include` limited to visible attributes; without that
+list, `jsx-only` would mark also `className` e `id`.
 
-Al configurar una regla de lint, comprobar que **dispara** con un componente sonda. Que el lint
-pase no prueba que la regla esté activa.
+When setting up a lint rule, check that **triggers** with a probe component. That the lint
+passes does not prove that the rule is active.
 
-### `router.replace(pathname)` no acepta rutas dinámicas tipadas
+### `router.replace(pathname)` does not accept typed dynamic routes
 
-`usePathname()` de next-intl devuelve el *nombre* de la ruta (`/catalogo/[slug]`), no la URL
-llena. `router.replace(pathname, { locale })` no typechequea y, peor, perdería el slug. El patrón
-documentado es `{ pathname, params }` con `useParams()` de `next/navigation`. Hay que castear:
-los tipos de `replace` no admiten esa unión. Comprobado en el navegador:
+`usePathname()` of next-intl returns the *name* of the route (`/catalogo/[slug]`), not the full URL
+filled. `router.replace(pathname, { locale })` does not typecheck and, worse, loses the slug. The documented pattern is `{ pathname, params }` with `useParams()` from `next/navigation`. You have to cast:
+the types of `replace` do not accept that union. Checked in the browser:
 `/en/catalogue` → `/es/catalogo`.
 
-### `useSearchParams` en el chrome rompe el prerender de toda página
+### `useSearchParams` in Chrome breaks the prerender of the whole page
 
-El header vive en el layout de `[locale]`. Si el selector de idioma lee
-`useSearchParams()`, Next exige un `<Suspense>` alrededor y, sin él, `next build` falla en `/es`
-con `missing-suspense-with-csr-bailout`. El query de filtros se lee en el *click* desde
-`window.location.search`, que es el momento en que hace falta y no contamina el prerender.
+The header lives in the `[locale]` layout. If the language selector reads
+`useSearchParams()`, Next requires a `<Suspense>` around and, without it, `next build` fails in `/es`
+with `missing-suspense-with-csr-bailout`. The filter query is read on click from
+`window.location.search`, which is the moment when it's needed and does not contaminate the prerender.
 
-### Cambiar filtros no puede ir por `router.replace`
+### Changing filters cannot go through `router.replace`
 
-`router.replace('/es/catalogo?x=1')` y `router.replace('?x=1')` (next/navigation y next-intl)
-dejan la URL en `/es/catalogo` sin query: el proxy trata el pathname como invariable.
+`router.replace('/es/catalogo?x=1')` and `router.replace('?x=1')` (next/navigation and next-intl)
+leave the URL as `/es/catalogo` without query: the proxy treats the pathname as invariant.
 
-Los chips son `Link` de next-intl con `{ pathname: "/catalogo", query }` — el mismo patrón
-que las familias de la home, y el que sí escribe el search string. Un `onClick` +
-`location.assign` no basta: en Playwright esos botones no hidratan y el click no hace nada.
-El select de orden sí usa `location.assign` (no puede ser un enlace). Ver ADR-0007.
+The chips are `Link` of next-intl with `{ pathname: "/catalogo", query }` — the same pattern
+that the families in the home, and that writes the search string. An `onClick` +
+`location.assign` does not work: in Playwright those buttons do not hydrate and the click does nothing.
+The select for sorting uses `location.assign` (cannot be a link). See ADR-0007.
 
 ## E2E
 
-### Playwright contra `http://web:3000` no hidrata sin `allowedDevOrigins`
+### Playwright against `http://web:3000` does not hydrate without `allowedDevOrigins`
 
-Next 16 + Turbopack corta el WebSocket de HMR si el `Host` no es un origen de
-desarrollo conocido. El E2E ve HTML del servidor, `__reactFiber` no aparece y
-cualquier `onClick` es un no-op. Los `Link` siguen funcionando (navegación real),
-por eso el catálogo pasaba y el carrito no.
+Next 16 + Turbopack cuts the HMR WebSocket if the `Host` is not a known development origin.
+The E2E sees server HTML, `__reactFiber` does not appear and
+any `onClick` is a no-op. The `Link` still works (real navigation),
+so the catalog passed and the cart failed.
 
-Regla: `allowedDevOrigins` incluye `web` (ADR-0008). Antes de un click cliente,
-esperar `#header-cart[data-hydrated=true]`.
+Rule: `allowedDevOrigins` includes `web` (ADR-0008). Before a client click,
+wait for `#header-cart[data-hydrated=true]`.
 
-### El contenedor `web` ya levantado sirve chrome viejo
+### The running `web` container serves an old Chrome
 
-Añadir un archivo nuevo (`SearchOverlay`, un `id` en el header) y correr E2E contra un
-`sparks-web-1` que ya estaba `healthy` falla como si el click no hidratara: el snapshot
-muestra `aria-expanded` (el store del header viejo sí abre) pero no el dialog, o
-`#header-search` no existe. El bind mount actualiza el fuente; Turbopack no siempre
-recompila el layout.
+Adding a new file (`SearchOverlay`, an `id` in the header) and running E2E against a
+`sparks-web-1` that was already `healthy` fails as if the click did not hydrate: the snapshot
+shows `aria-expanded` (the store of the old header opens) but no dialog, or
+`#header-search` does not exist. The bind mount updates the source; Turbopack does not always
+recompile the layout.
 
-Regla: después de islas nuevas en el layout, `docker compose … restart web` y esperar
-`healthy` antes del E2E.
+Rule: after new islands in the layout, `docker compose … restart web` and wait
+`healthy` before the E2E.
 
-Con hidratación, un `Link` de next-intl hace navegación cliente y los chips del
-catálogo se quedan con el `query` del RSC anterior: el segundo filtro pisa al
-primero. Los chips son `<a href>` nativos (`catalogUrl`) para recargar.
+With hydration, a `Link` of next-intl does client-side navigation and the chips from the catalog keep the
+`query` from the RSC previous: the second filter overwrites the first.
+The chips are `<a href>` native (`catalogUrl`) to reload.
 
-### `title.template` con `{page}` tumba `generateMetadata`
+### `title.template` with `{page}` kills `generateMetadata`
 
-Next interpola `metadata.title.template` con `%s`. Pasarle el `{page}` de next-intl
-lanza `FORMATTING_ERROR` / `Missing metadata.titleTemplate` y la página se sirve
-como `__next_error__` (html sin `lang` ni title). Axe entonces marca
-`document-title` y `html-has-lang` en *todas* las rutas. El layout usa
-`title: t("title")` plano; las páginas pasan su propio title por `seoMetadata()`.
+Next interpolates `metadata.title.template` with `%s`. Passing it the `{page}` of next-intl
+throws `FORMATTING_ERROR` / `Missing metadata.titleTemplate` and the page is served as `__next_error__` (html without `lang` ni title). Axe then marks
+`document-title` and `html-has-lang` in *all* routes. The layout uses
+`title: t("title")` plain; the pages pass their own title by `seoMetadata()`.
 
-### El skip-link no entra en touch ni overflow
+### The skip-link does not enter touch or overflow
 
-`.sr-only` está recortado a 1×1. Si el E2E de AC-15 / AC-17 lo mide, falla.
-Excluir `.sr-only` (y `[aria-hidden='true']`) de esas mediciones.
+`.sr-only` is clipped to 1×1. If the E2E of AC-15 / AC-17 measures it, it fails.
+Exclude `.sr-only` (and `[aria-hidden='true']`) from those measurements.
 
-### `prefers-reduced-motion` deja `animationName` vacío, no `"none"`
+### `prefers-reduced-motion` leaves `animationName` empty, not `"none"`
 
-`page.emulateMedia({ reducedMotion: "reduce" })` en Chromium para la marquesina:
-`getComputedStyle().animationName` es `""` y `transform` es `none`. Aceptar
-ambos; no exigir el literal `"none"` en `animationName`.
+`page.emulateMedia({ reducedMotion: "reduce" })` in Chromium for the marquee:
+`getComputedStyle().animationName` is `""` and `transform` is `none`. Accept
+both; do not require the literal `"none"` in `animationName`.
 
-### Kickers oro a 10px (ADR-0009)
+### Gold kickers at 10px (ADR-0009)
 
-24px en TIENDA / Envíos / Sparks Club / 01–04 los convierte en títulos.
-El proto es 10px `#8A6B32`. Sobre canvas Chrome marca 4.4:1 (aviso). Sobre
-ink, un oro más claro (`oklch(0.72 0.09 85)`) llega a 7.5:1. No subir el
-kicker a 24px para “arreglar” el aviso.
+24px in TIENDA / Envíos / Sparks Club / 01–04 turns into titles.
+The proto is 10px `#8A6B32`. On canvas Chrome marks 4.4:1 (warning). On
+ink, a lighter gold (`oklch(0.72 0.09 85)`) reaches 7.5:1. Do not raise the
+kicker to 24px to “fix” the warning.
 
-### Contraste: `text-ink/55` a 22px no pasa AA
+### Contrast: `text-ink/55` at 22px does not pass AA
 
-El proto pinta la marquesina `rgba(20,16,14,0.55)` sobre `#FBF9F5`. Axe mide
-4.11:1 (hace falta 4.5:1; 22px regular no es «large text»). Usar
-`text-text-muted` (`#3E3731`). No relajar el E2E de axe.
+The proto paints the marquee `rgba(20,16,14,0.55)` over `#FBF9F5`. Axe mides
+4.11:1 (needs 4.5:1; 22px regular is not «large text»). Use
+`text-text-muted` (`#3E3731`). Do not relax the E2E of axe.
 
-### Contraste: `canvas/40` y `text-success` fallan a 10px
+### Contrast: `canvas/40` and `text-success` fail at 10px
 
-`#4CA455` sobre canvas es 2.76:1; `text-canvas/40` sobre ink es 3.52:1. Axe
-`color-contrast` los marca en el footer y en el badge de stock. Usar
-`text-canvas/70` y `text-ink` para copy pequeña; el verde success queda para
-el punto no-texto del FAB.
+`#4CA455` over canvas is 2.76:1; `text-canvas/40` over ink is 3.52:1. Axe
+`color-contrast` marks them in the footer and in the stock badge. Use
+`text-canvas/70` and `text-ink` for small copy; the green success stays for
+the non-text part of the FAB.
 
-### Miniaturas y enlaces subrayados miden el glifo, no el hit area
+### Thumbnails and underlined links measure the glyph, not the hit area
 
-Una miniatura cuyo `<button>` envuelve un placeholder sin `block w-full` sale
-2×2px. Un `Link` subrayado de `text-label` sin `inline-flex min-h-11 items-center`
-sale ~10px de alto (el vacío del carrito «Ver catálogo»). AC-15 exige las dos
-clases en todo control que no sea un botón del §03.
+A thumbnail whose `<button>` wraps a placeholder without `block w-full` is 2×2px.
+An underlined link from `text-label` without `inline-flex min-h-11 items-center`
+is ~10px high (the empty space of the cart «Ver catálogo»). AC-15 requires these two
+classes in all controls that are not a button from the §03.
 
-«TikTok» a `text-mono-meta` mide 38×44: `min-h-11` no basta. Labels cortos
-de redes llevan también `min-w-11`.
+"TikTok" to `text-mono-meta` is 38×44: `min-h-11` is not enough. Labels short
+of social networks also need `min-w-11`.
 
-### `getByRole('heading', { name })` es substring
+### `getByRole('heading', { name })` is substring
 
-«Todo el país» matchea el h2 de Services («Envíos a todo el país») **y** el
-de la franja 002. Usar `{ exact: true }` cuando dos headings comparten un
+«Todo el país» matches the h2 of Services («Envíos a todo el país») **and** the
+of the banner 002. Use `{ exact: true }` when two headings share a
 trozo.
 
-## Estado
+## State
 
-### `persist` de Zustand escribe en cada `setState`
+### `persist` of Zustand writes in each `setState`
 
-Un test que hacía `setState({items: []})` para «simular una recarga» borraba `localStorage` antes
-de rehidratar, y la rehidratación devolvía vacío. Para probar la hidratación hay que **sembrar el
-almacenamiento después** de vaciar el store, no antes.
+A test that did `setState({items: []})` to «simulate a reload» cleared `localStorage` before
+rehidratar, and the rehidratación returned empty. To test the rehidratación you need to **sow the storage after**
+vaciar el store, not before.
 
-En la aplicación se usa `skipHydration: true` y un `rehydrateCart()` en efecto: hidratar durante
-el render haría que el contador del header renderizado en servidor (siempre vacío) no coincida
-con el del cliente.
+In the application we use `skipHydration: true` and a `rehydrateCart()` in effect: hydrating during
+the render would make the header counter rendered on server (always empty) not match
+with the client's one.
 
 ## PowerShell
 
-Encadenar `sh -c "... $(comando) ..."` en un `docker run` no funciona: PowerShell interpola `$(...)`
-antes de pasarlo al contenedor. Usar comillas simples, o —mejor— dejar que la herramienta resuelva
-el trabajo (por ejemplo `npm install --package-lock-only`, que además evita inventar versiones a
-mano).
+Chaining `sh -c "... $(command) ..."` in a `docker run` does not work: PowerShell interpolates `$(...)`
+before passing it to the container. Use single quotes, or —better— let the tool resolve
+the work (for example `npm install --package-lock-only`, which also avoids inventing versions by hand).
 
-Además, PowerShell trata la salida por stderr de `docker compose` como error cuando se usa `2>&1 |`,
-así que un `$LASTEXITCODE`/`Exit code` distinto de 0 en esos pipelines **no** significa que el
-comando fallara. Comprobar la salida real antes de concluir nada.
+Also, PowerShell treats the output by stderr of `docker compose` as error when using `2>&1 |`,
+so a `$LASTEXITCODE`/`Exit code` different from 0 in those pipelines **does not** mean that the
+command failed. Check the real output before concluding anything.
