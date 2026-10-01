@@ -2,31 +2,29 @@
 
 ## Overview
 
-Un storefront de Next.js (`web/`). La cuenta (spec 008) llama a `api/`
-desde server actions: login, registro, `/me` y logout. El bearer queda en
-la cookie httpOnly `sparks_session`. El catálogo sigue contra el
-contrato de `web/src/lib/api/contract.ts`. Con `API_MODE=http` (el
-stack de `docker/docker-compose.yml`) la vidriera lee `GET /products`
-público. Con `mock`, los tests y `web/docker-compose.yml` siguen en
+A Next.js storefront (`web/`). The account (spec 008) calls `api/`
+from server actions: login, registration, `/me`, and logout. The bearer token remains in the HTTP-only cookie `sparks_session`. The catalog follows the contract of `web/src/lib/api/contract.ts`. With `API_MODE=http` (the
+stack of `docker/docker-compose.yml`) the storefront reads `GET /products`
+publicly. With `mock`, tests and `web/docker-compose.yml` follow in
 fixtures.
-La apuesta central no cambia: el frontend se construye **contra un contrato, no contra un backend**, de modo
-que conectar el catálogo a `api/` no reescriba componentes.
+The central bet remains: the frontend is built **against a contract, not against a backend**, so connecting the catalog to `api/` does not rewrite components.
 
 ## Components / boundaries
 
-| Capa | Dónde | Responsabilidad |
-|------|-------|-----------------|
-| Tokens de diseño | `web/src/styles/theme.css` | Única fuente de colores, tipografía, espaciado y breakpoints. La paleta y los radios de Tailwind están **reemplazados**, no extendidos |
-| Contrato de datos | `web/src/lib/api/contract.ts` | Esquemas Zod de los que se **infieren** los tipos. Es lo que `api/` deberá cumplir |
-| Repositorio | `web/src/lib/api/` | `CatalogRepository` con dos implementaciones: `mock-repository` (fixtures) y `http-repository` (mapea el JSON público de 017 al contrato). `API_MODE` elige |
-| Estado | `web/src/lib/cart/`, `web/src/lib/ui/` | Carrito persistido (sólo referencias) y overlays. Zustand |
-| i18n | `web/src/i18n/`, `web/src/proxy.ts` | Locales, rutas traducidas, diccionarios |
-| UI | `web/src/components/`, `web/src/app/[locale]/` | Nunca llaman a `fetch` ni importan fixtures: pasan por el repositorio |
-| Chrome | `web/src/components/layout/` + `search/` | Header, barra de anuncio, menú móvil, footer, FAB, hidratación del carrito, drawer, overlay de búsqueda y toasts. El layout de `[locale]` los monta una vez |
+| Layer | Where | Responsibility |
+|-------|-------|-----------------|
+| Design tokens | `web/src/styles/theme.css` | Unique source of colors, typography, spacing and breakpoints. The palette and Tailwind radii are **replaced**, not extended |
+| Data contract | `web/src/lib/api/contract.ts` | Zod schemas from which types are **inferred**. This is what `api/` must comply with |
+| Repository | `web/src/lib/api/` | `CatalogRepository` with two implementations: `mock-repository` (fixtures) and `http-repository` (maps the public JSON of 017 to the contract). `API_MODE` chooses |
+| State | `web/src/lib/cart/`, `web/src/lib/ui/` | Persisted cart (only references) and overlays. Zustand |
+| i18n | `web/src/i18n/`, `web/src/proxy.ts` | Locales, translated routes, dictionaries |
+| UI | `web/src/components/`, `web/src/app/[locale]/` | Never call `fetch` or read `src/fixtures`
+directly: pass through the repository |
+| Chrome | `web/src/components/layout/` + `search/` | Header, banner, mobile menu, footer, FAB, cart hydration, drawer, search overlay and toasts. The layout of `[locale]` mounts it once |
 | SEO | `web/src/lib/seo.ts` + `web/public/` | `hreflang` es-AR / en / x-default, Open Graph 1200×630, favicon SVG + PNG 32/180/512 |
 
-La frontera dura está en el repositorio. Un componente que llame a `fetch` o lea `src/fixtures`
-directamente rompe la posibilidad de cambiar de backend sin tocar la UI (ADR-0003).
+The hard boundary is at the repository. A component that calls `fetch` or reads `src/fixtures`
+directly breaks the possibility of changing the backend without touching the UI (ADR-0003).
 
 ## Docker convention
 
@@ -44,173 +42,166 @@ The `docker/` folder only orchestrates the full stack. It references each servic
 
 ## Domain resources (selected)
 
-- **Product** — en la vidriera: marca, nombre, familia olfativa, tamaño en ml,
-  precio en ARS entero e imágenes. El GET anónimo no trae costo, sku, código,
-  descuento ni medidas. Notas, concentración y stock no se persisten: el
-  mapeo los deja vacíos o null. Familia es uno de cuatro slugs
+- **Product** — in the storefront: brand, name, olfactory family, size in ml,
+  price in ARS integer and images. The GET anonymous does not include cost, sku, code,
+  discount or measurements. Notes, concentration and stock are not persisted: the
+  mapping leaves them empty or null. Family is one of four slugs
   (`ambar-especias`, `florales`, `gourmand`, `maderas`).
-- **Facets** — valores disponibles de familia, marca y tamaño con su recuento, más el rango de
-  precios. Alimentan la barra lateral del catálogo.
-- **CartItem** — `{productId, slug, quantity}`. Es lo único que se guarda; el precio se recalcula
-  siempre desde el repositorio.
+- **Facets** — available values of family, brand and size with their count, plus the price range,
+  alimenting the catalog sidebar.
+- **CartItem** — `{productId, slug, quantity}`. This is what is saved; the price is recalculated
+  always from the repository.
 
 ## Key flows
 
-### Petición de página
+### Page request
 
-`proxy.ts` negocia el locale y redirige `/` al prefijo que corresponda → el layout de
-`[locale]` fija el locale de la petición y carga el diccionario → la página pide datos al
-repositorio → `API_MODE` decide si salen de fixtures o de `api/`.
+`proxy.ts` negotiates the locale and redirects `/` to the prefix that corresponds → the layout of
+`[locale]` sets the request locale and loads the dictionary → the page requests data from
+the repository → `API_MODE` decides whether to come from fixtures or from `api/`.
 
-### Catálogo
+### Catalog
 
-Los filtros viven en la URL (`family`, `brand`, `size`, `priceMin`, `priceMax`, `q`, `sort`).
-En `http` esa query viaja tal cual a `GET /products`; la grilla no filtra
-otra vez. El orden es `name-asc` (default), `name-desc`, `price-asc`,
-`price-desc`. La página RSC los parsea con `fromSearchValues` y pide
-`listProducts` + `getFacets`. Cada chip es un `Link` al query siguiente — `router.replace` descarta el search en este pathname
-(ADR-0007). Una combinación que vaciaría la grilla se atenúa al 40% y no es enlace.
+The filters live in the URL (`family`, `brand`, `size`, `priceMin`, `priceMax`, `q`, `sort`). In `http`
+that query travels as is to `GET /products`; the grid does not filter
+again. The order is `name-asc` (default), `name-desc`, `price-asc`,
+`price-desc`. The page RSC parses with `fromSearchValues` and requests
+`listProducts` + `getFacets`. Each chip is a `Link` to the next query — `router.replace` discards the search in this pathname
+(ADR-0007). A combination that would empty the grid is dimmed at 40% and not a link.
 
-### Ficha
+### Product detail
 
-`/catalogo/[slug]` pide `getProduct` + `getRelated`. El layout es el de
-`isProduct` en el artefacto de la vidriera
+`/catalogo/[slug]` requests `getProduct` + `getRelated`. The layout is the one of
+`isProduct` in the storefront artefact
 ([018](specs/018-ficha-producto/spec.md),
-[ADR-0025](decisions/0025-ficha-sin-datos-inventados.md)). Nombre,
-descripción, precio, marca, familia, tamaño y fotos salen del
-contrato. Sin notas no hay pirámide. Sin un número de stock no dice
-«En stock». En `http` el slug es el uuid y `getRelated` vuelve `[]`:
-la sección «También te puede gustar» queda con el empty state.
-Galería y compra son cliente (miniaturas, stepper); el resto es RSC.
-El listado vive en `catalogo/(grid)/` para que su `loading.tsx` no
-envuelva la ficha.
+[ADR-0025](decisions/0025-ficha-sin-datos-inventados.md)). Name,
+description, price, brand, family, size and photos come from
+the contract. Without notes there is no pyramid. Without a stock number it does not say
+«In stock». In `http` the slug is the uuid and `getRelated` returns `[]`:
+the «Also like» section remains with the empty state.
+Gallery and purchase are client-side (thumbnails, stepper); the rest is RSC.
+The list lives in `catalogo/(grid)/` so that its `loading.tsx` does not
+wrap the product detail.
 
-### Carrito
+### Cart
 
-Agregar (`useAddToCart`) guarda una referencia, abre el overlay `cart` y encola un toast.
-`resolveCart()` une esas referencias con el producto vivo en el cliente (`useResolvedCart`):
-recalcula precios, recorta cantidades al stock y reporta lo agotado. El drawer
-(`cart-drawer.tsx`, 420px, z-101) y `/carrito` (`CartView` + `CartAside`) leen el
-mismo store; el contador del header espera `hydrated` para no desajustar el HTML
-del servidor. La página (005) pinta el aside del prototipo; el drawer conserva
-el resumen compacto. El `wa.me` de pedido no se arma bajo $30.000.
+Adding (`useAddToCart`) saves a reference, opens the `cart` overlay and enqueues a toast.
+`resolveCart()` unites those references with the live product in the client (`useResolvedCart`):
+recalculates prices, cuts quantities to stock and reports what is sold out. The drawer
+(`cart-drawer.tsx`, 420px, z-101) and `/carrito` (`CartView` + `CartAside`) read the same store; the header counter waits for `hydrated` to not adjust the server HTML
+of the page. The page (005) paints the aside of the prototype; the drawer keeps
+the compact summary. The `wa.me` of order does not build under $30,000.
 
-### Hero y home (003 / 006)
+### Hero and home (003 / 006)
 
-Orden: Hero → marquesina → familias → destacados → Club → `commerce-strip`
-(Envíos / Pagos / Mayorista). **Sin** el bloque T054.
+Order: Hero → marquesina → families → featured → Club → `commerce-strip`
+(Shipping / Payment / Wholesale). **Without** the T054 block.
 
-Copy del hero a la izquierda (`GoldRule` 34×1 + h1 con `titleEm` oro +
-CTAs + stats). Figure a la derecha con `Packshot fill`, pegada a la
-marquesina (Cormorant 22px, `text-text-muted`). Familias: desc + count,
-min-h 250, hover ink. Destacados: «Los más pedidos» + «Ver todo».
+Hero copy to the left (`GoldRule` 34×1 + h1 with `titleEm` gold +
+CTAs + stats). Figure to the right with `Packshot fill`, pinned to the
+marquesina (Cormorant 22px, `text-text-muted`). Families: desc + count,
+min-h 250, hover ink. Featured: «Most ordered» + «See all».
 
-Club: h2 34→56, kicker e índices oro **10px** (`GOLD_KICKER` / `GOLD_INDEX`,
-ADR-0009). Misma escala en commerce-strip, footer y contacto. El h1
-«Se recuerda.» sigue oro grande.
-Redes del prototipo (`sparks.insumos`). FAB con `border-canvas/20`.
+Club: h2 34→56, kicker e índices gold **10px** (`GOLD_KICKER` / `GOLD_INDEX`,
+ADR-0009). Same scale in commerce-strip, footer and contact. The h1
+«We remember.» follows gold large.
+Social media from the prototype (`sparks.insumos`). FAB with `border-canvas/20`.
 
-### Búsqueda
+### Search
 
-El trigger (`#header-search`) abre el overlay `search`. Backdrop `rgba(20,16,14,0.55)` + blur,
-foco al input, Escape / backdrop / close restauran el trigger (AC-12). Chips de nota y marca
-salen de `getFacets` + `listProducts`. Desde 2 caracteres se muestran hasta 4 resultados.
-Enter hace `location.assign` a `/es/catalogo?q=` · `/en/catalogue?q=` (ADR-0008).
+The trigger (`#header-search`) opens the `search` overlay. Backdrop `rgba(20,16,14,0.55)` + blur,
+focus to input, Escape / backdrop / close restores the trigger (AC-12). Chips of note and brand
+come from `getFacets` + `listProducts`. From 2 characters it shows up to 4 results.
+Enter makes `location.assign` to `/es/catalogo?q=` · `/en/catalogue?q=` (ADR-0008).
 
 ### SEO
 
-`seoMetadata()` en `web/src/lib/seo.ts` arma title, description, canonical y
-`alternates.languages` (`es-AR`, `en`, `x-default` → es). El layout fija `metadataBase`
-(`NEXT_PUBLIC_SITE_URL` o `http://localhost:3000`) y los iconos. OG usa `/og.png` (1200×630).
-Las marcas las genera `web/scripts/write-brand-images.mjs`; un test comprueba los tamaños PNG.
+`seoMetadata()` in `web/src/lib/seo.ts` builds title, description, canonical and
+`alternates.languages` (`es-AR`, `en`, `x-default` → es). The layout sets `metadataBase`
+(`NEXT_PUBLIC_SITE_URL` or `http://localhost:3000`) and the icons. OG uses `/og.png` (1200×630).
+The logos are generated by `web/scripts/write-brand-images.mjs`; a test checks the PNG sizes.
 
-`title` de Next es un string plano. **No** usar `title.template` con el placeholder `{page}`
-de next-intl — Next exige `%s` y un template mal formado tira `generateMetadata`.
+`title` of Next is a plain string. **No** use `title.template` with the placeholder `{page}`
+of next-intl — Next requires `%s` and an improperly formatted template throws `generateMetadata`.
 
-### Contacto (004)
+### Contact (004)
 
-`/contacto` · `/contact` reclama la ruta que el chrome ya enlazaba. Página
-cliente (`contact-page.tsx`) + isla de formulario que solo hace
-`preventDefault`. Aside con WhatsApp / email del proto / Franklin y panel
-ink a `wa.me` (`whatsapp.general`). Sin POST ni toast. Kicker oro ≥24px
+`/contacto` · `/contact` claims the route that the chrome already linked. A client-side
+page (`contact-page.tsx`) + island of form that only does
+`preventDefault`. Aside with WhatsApp / email from the proto / Franklin and panel
+ink to `wa.me` (`whatsapp.general`). No POST or toast. Kicker gold ≥24px
 (RNF-2).
 
-### Cierre de compra
+### Checkout
 
-No hay pasarela de pago en Fase 1. El carrito se convierte en un mensaje de WhatsApp
-(`buildWhatsappUrl`) con el pedido precargado; el texto sale del diccionario para que se traduzca.
+No payment gateway in Phase 1. The cart converts into a WhatsApp message
+(`buildWhatsappUrl`) with the order pre-filled; the text comes from the dictionary to be translated.
 
-### Cuentas (007)
+### Accounts (007)
 
-Implementada en [`specs/007-api-autenticacion/`](specs/007-api-autenticacion/spec.md).
-Servicios `db` y `api` en Compose (`web` no depende de ellos). Bases `sparks`
-y `sparks_test`. `GET /health` sigue para el healthcheck.
+Implemented in [`specs/007-api-autenticacion/`](specs/007-api-autenticacion/spec.md).
+Services `db` and `api` in Compose (`web` does not depend on them). Databases `sparks`
+and `sparks_test`. `GET /health` follows for the healthcheck.
 
-- FastAPI + SQLAlchemy async + Postgres, en contenedores `api` y `db`.
-  `web` no depende de ellos.
-- Bearer opaco guardado hasheado en `sessions`. Logout revoca la fila.
-- `DELETE /me` pone `users.active = false`. No borra la fila.
-- `must_change_password`: el login entrega token, y cualquier otra ruta
-  autenticada responde 403 `password_change_required` hasta
-  `POST /auth/change-password`. El usuario base nace con el flag en true.
-- Swagger en `/docs`.
-- La auditoría ([012](specs/012-auditoria/spec.md), ADR-0017) está en el
-  código: tabla `audits`, decorator opt-in `audited`, y `GET /audits` más
-  `GET /audits/{audit_id}`. Las rutas de cuenta no lo llaman. El
-  catálogo de [013](specs/013-productos/spec.md) sí: cada CRUD exitoso
-  de productos, categorías y tags escribe una fila.
-- El storefront llama a esas rutas desde server actions (`web/src/lib/auth/`).
-  `API_MODE` no gobierna la cuenta: siempre usa `API_BASE_URL`. El catálogo
-  sigue en fixtures. El layout no lee cookies; el enlace «Mi cuenta» mira
-  `sparks_signed_in` después de montar.
-- Productos, categorías y tags ([013](specs/013-productos/spec.md),
-  ADR-0018) tienen CRUD autenticado. Las fotos se suben por un puerto.
-  boto3 usa el bucket y las claves de `api/.env`. En pytest, un doble
-  en memoria. No reemplazan el contrato de la vidriera
+- FastAPI + SQLAlchemy async + Postgres, in containers `api` and `db`.
+  `web` does not depend on them.
+- Bearer token opaque saved hashed in `sessions`. Logout revokes the row.
+- `DELETE /me` sets `users.active = false`. Does not delete the row.
+- `must_change_password`: the login delivers token, and any other authenticated route
+  responds 403 `password_change_required` until
+  `POST /auth/change-password`. The base user is born with the flag set to true.
+- Swagger at `/docs`.
+- The audit ([012](specs/012-auditoria/spec.md), ADR-0017) is in the
+  code: table `audits`, decorator opt-in `audited`, and `GET /audits` more
+  `GET /audits/{audit_id}`. The account routes do not call it. The
+  catalog of [013](specs/013-productos/spec.md) does: each CRUD successful
+  product, category and tag writes a row.
+- The storefront calls these routes from server actions (`web/src/lib/auth/`).
+  `API_MODE` does not govern the account: always uses `API_BASE_URL`. The catalog
+  remains in fixtures. The layout does not read cookies; the link «My Account» checks
+  `sparks_signed_in` after mounting.
+- Products, categories and tags ([013](specs/013-productos/spec.md),
+  ADR-0018) have authenticated CRUD. Photos are uploaded via a port.
+  boto3 uses the bucket and keys from `api/.env`. In pytest, an in-memory double. Does not replace the contract of the storefront
   (`web/src/lib/api/contract.ts`).
-- La página de cuenta ([009](specs/009-cuenta-fidelidad/spec.md), ADR-0013)
-  dibuja Nivel, Cupón activo y Pedidos con `-`, y «Tus pedidos» vacío.
-  `GET /me` no trae esos datos. No se inventan.
+- The account page ([009](specs/009-cuenta-fidelidad/spec.md), ADR-0013)
+  draws Level, Active Coupon and Orders with `-`, and «Your orders» empty.
+  `GET /me` does not include those data. No fake data is invented.
 
 ### Backoffice (010)
 
-Servicio `backoffice/`, contenedor `sparks-backoffice`, puerto de host
-`BACKOFFICE_PORT` (3200). No comparte la cookie `sparks_session`.
+Service `backoffice/`, container `sparks-backoffice`, host port
+`BACKOFFICE_PORT` (3200). Does not share the `sparks_session` cookie.
 
-- `POST /auth/login` sale de una server action hacia `API_BASE_URL`.
-- El bearer queda en Zustand, clave `sparks-backoffice-session` de
+- `POST /auth/login` comes from a server action towards `API_BASE_URL`.
+- The bearer token remains in Zustand, key `sparks-backoffice-session` of
   `sessionStorage` (ADR-0014).
-- `AuthGate` espera a rehidratar y aplica `decideRedirect`: sin token, a
-  `/unauthorized`; con token, `/login` y `/` van a `/dashboard`.
-- Con sesión, `(panel)` muestra el menú, el encabezado, el resumen
-  en `/dashboard` y los ajustes en `/ajustes`. El texto es fijo
-  ([011](specs/011-backoffice-cascaron/spec.md), ADR-0016). No llama
-  a `GET /me`. Pedidos, mensajes, cupones y contenido sólo tienen
-  título. `/usuarios` lista las cuentas de 007 y abre el cajón de alta
-  y el de edición
+- `AuthGate` waits for rehydration and applies `decideRedirect`: without token, to
+  `/unauthorized`; with token, `/login` and `/` go to `/dashboard`.
+- With session, `(panel)` shows the menu, the header, the summary
+  in `/dashboard` and the settings in `/ajustes`. The text is fixed
+  ([011](specs/011-backoffice-cascaron/spec.md), ADR-0016). Does not call
+  `GET /me`. Orders, messages, coupons and content only have
+  title. `/usuarios` lists the accounts of 007 and opens the drawer for alta
+  and edición
   ([019](specs/019-usuarios-backoffice/spec.md),
   [ADR-0026](decisions/0026-usuarios-del-panel-sin-datos-inventados.md)).
-  La pestaña Equipo queda vacía. Nivel, pedidos, gasto y notas se ven
-  y no se guardan. El navegador llama a `/api/users` y esa ruta reenvía
-  a `API_BASE_URL` con el bearer. Un 401 cierra la sesión.
-- `/catalogo` lista los productos de 013 y `/catalogo/nuevo` los crea
-  ([014](specs/014-catalogo-backoffice/spec.md), ADR-0019). El layout es
-  el del artefacto (ADR-0021): filtros, grilla y cajón. Familia y tamaño
-  se guardan (`family`, `size_ml`; ADR-0024). Stock, «Para» y la
-  descripción en inglés se ven y no se guardan. El cajón no
-  muestra la pirámide. Cada cuadro de foto elige un archivo, lo
-  previsualiza y corta el nombre dejando la extensión
-  ([015](specs/015-cajon-fotos-sin-piramide/spec.md), ADR-0022). El listado
-  muestra la primera foto con `photo_urls` (GET firmado, una hora).
-  «Editar» abre ese cajón con los datos guardados y hace `PATCH`.
-  Publicado manda sólo `visibility`. La papelera y el reemplazo viajan
-  como `photo_slots` y borran en el bucket al guardar
-  ([016](specs/016-edicion-producto/spec.md), ADR-0023). El navegador
-  llama a `/api/catalog/...` en el panel; esa ruta reenvía a
-  `API_BASE_URL` con el bearer (`Authorization` o `x-sparks-token`,
-  ADR-0020). Un 401 cierra la sesión y vuelve a `/login`. La foto se
-  cuenta, y además se ve la miniatura.
-- Los tests de unidad no levantan `api`. El gate usa `--no-deps`.
+  The Team tab remains empty. Level, orders, spending and notes are seen
+  and not saved. The browser calls to `/api/users` and that route reenvía
+  to `API_BASE_URL` with the bearer. A 401 closes the session.
+- `/catalogo` lists the products of 013 and `/catalogo/nuevo` creates them
+  ([014](specs/014-catalogo-backoffice/spec.md), ADR-0019). The layout is
+  the one from the artefact (ADR-0021): filters, grid and drawer. Family and size
+  are saved (`family`, `size_ml`; ADR-0024). Stock, «For» and the
+  description in English do not appear and are not saved. The drawer does
+  not show the pyramid. Each photo box chooses a file, previews it and cuts the name leaving the extension
+  ([015](specs/015-cajon-fotos-sin-piramide/spec.md), ADR-0022). The list shows the first photo with `photo_urls` (GET signed, one hour).
+  «Edit» opens that drawer with the saved data and does `PATCH`.
+  Published sends only `visibility`. The trash and replacement travel as `photo_slots` and delete in the bucket when saving
+  ([016](specs/016-edicion-producto/spec.md), ADR-0023). The browser calls to `/api/catalog/...` in the panel; that route reenvía to
+  `API_BASE_URL` with the bearer (`Authorization` or `x-sparks-token`,
+  ADR-0020). A 401 closes the session and returns to `/login`. The photo is counted, and also the thumbnail is seen.
+- Unit tests do not lift `api`. The gate uses `--no-deps`.
 
 ### Standalone
 <!-- The concrete pain and the "job" the customer hires the product to do. -->
@@ -226,18 +217,18 @@ Servicio `backoffice/`, contenedor `sparks-backoffice`, puerto de host
 
 ## External dependencies
 
-En tiempo de build: **ninguna**. Las tipografías están versionadas (ADR-0006) y el build pasa con
+At build time: **none**. The fonts are versioned (ADR-0006) and the build passes with
 `--network none`.
 
-En tiempo de ejecución:
+At runtime:
 
-- **wa.me** — el checkout termina en WhatsApp. Sin SDK: sólo un enlace.
-- **`api/`** — cuentas, sesión y, con `API_MODE=http`, el catálogo.
-  `GET /products` y `GET /products/{id}` no piden sesión. Sin bearer el
-  cuerpo es público (sólo `visible`, sin costo). El home y `/catalogo`
-  se arman en cada pedido para no congelar el listado en el build.
+- **wa.me** — the checkout ends in WhatsApp. Without SDK: just a link.
+- **`api/`** — accounts, session and, with `API_MODE=http`, the catalog.
+  `GET /products` and `GET /products/{id}` do not request session. Without bearer the
+  body is public (only `visible`, without cost). The home and `/catalogo`
+  are built for each request to avoid freezing the list in the build.
 
-No hay pasarela de pago, analítica ni CMS en Fase 1.
+No payment gateway, analytics or CMS in Phase 1.
 
-A demanda, fuera de cualquier build: **Google Fonts**, a través de la etapa `fonts` del Dockerfile
-de `web/`, para regenerar los `.woff2`.
+On demand, outside of any build: **Google Fonts**, through the `fonts` stage of the Dockerfile
+of `web/`, to regenerate the `.woff2`.
