@@ -1,10 +1,12 @@
 # Full stack orchestration. Never duplicates a service Dockerfile — it references them.
 # `db` and `api` are defined in api/docker-compose.yml and included here.
+# `backoffice` is defined in backoffice/docker-compose.yml and included here.
 # `web` does not depend on them: `up web` and `--no-deps` stay storefront-only.
 name: sparks
 
 include:
   - path: ../api/docker-compose.yml
+  - path: ../backoffice/docker-compose.yml
 
 services:
   web:
@@ -23,7 +25,7 @@ services:
     environment:
       # Bind mounts on Windows/macOS do not deliver inotify events reliably.
       WATCHPACK_POLLING: "true"
-      API_MODE: ${API_MODE:-mock}
+      API_MODE: ${API_MODE:-http}
       API_BASE_URL: ${API_BASE_URL:-http://api:8000}
       NEXT_PUBLIC_WHATSAPP_NUMBER: ${NEXT_PUBLIC_WHATSAPP_NUMBER:-5491168692694}
     env_file:
