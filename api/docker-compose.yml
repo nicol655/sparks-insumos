@@ -31,6 +31,9 @@ services:
     volumes:
       - .:/app
       - /app/.venv
+    env_file:
+      - path: .env
+        required: false
     environment:
       # Bind mounts on Windows do not deliver inotify events reliably.
       WATCHFILES_FORCE_POLLING: "true"

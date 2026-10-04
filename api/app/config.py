@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     bootstrap_admin_email: str = "admin@sparksinsumos.com"
     bootstrap_admin_password: str = "admin123456"
     session_ttl_seconds: int = 21600
+    aws_region: str = ""
+    aws_s3_bucket: str = ""
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
 
 
 @lru_cache

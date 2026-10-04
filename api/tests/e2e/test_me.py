@@ -42,12 +42,25 @@ async def test_get_me_returns_the_public_user() -> None:
 
     assert response.status_code == 200
     body = response.json()
-    assert body == created.json()
+    assert body["email"] == created.json()["email"]
+    assert body["first_name"] == created.json()["first_name"]
+    assert body["role"] == "customer"
+    assert body["role_id"] == created.json()["role_id"]
     assert body["email"] == "ana@example.com"
     assert body["first_name"] == "Ana"
     assert body["phone"] == "+5491168692694"
     assert body["active"] is True
     assert body["must_change_password"] is False
+    assert body["role"] == "customer"
+    assert body["role_id"]
+    assert isinstance(body["permissions"], list)
+    assert any(
+        grant["controller"] == "products" and grant["method"] == "list"
+        for grant in body["permissions"]
+    )
+    assert not any(
+        grant["controller"] == "backoffice_access" for grant in body["permissions"]
+    )
     assert "password" not in body
     assert "password_hash" not in body
     assert "Sparks1!" not in response.text
@@ -178,7 +191,7 @@ async def test_patch_me_rejects_an_email_that_belongs_to_someone_else() -> None:
     assert current.json()["email"] == "ana@example.com"
 
 
-async def test_delete_me_deactivates_the_account_and_revokes_its_sessions(
+async def test_delete_me_soft_deletes_the_account_and_revokes_its_sessions(
     db_engine: AsyncEngine,
 ) -> None:
     async with await _client() as client:
@@ -198,6 +211,7 @@ async def test_delete_me_deactivates_the_account_and_revokes_its_sessions(
             "/auth/login",
             json={"email": "ana@example.com", "password": "Sparks1!"},
         )
+        me_again = await client.get("/me", headers=headers)
         posted = await client.post("/me", headers=headers)
         registered = await client.post("/auth/register", json=_register_body())
 
@@ -205,6 +219,8 @@ async def test_delete_me_deactivates_the_account_and_revokes_its_sessions(
     assert deleted.content == b""
     assert again.status_code == 401
     assert again.json() == _INVALID
+    assert me_again.status_code == 401
+    assert me_again.json() == _UNAUTHENTICATED
     assert posted.status_code == 405
     assert registered.status_code == 409
     assert registered.json()["code"] == "email_taken"
@@ -216,6 +232,7 @@ async def test_delete_me_deactivates_the_account_and_revokes_its_sessions(
                 text(
                     """
                     SELECT active,
+                           deleted_at IS NOT NULL AS soft_deleted,
                            (SELECT count(*) FROM users WHERE email = 'ana@example.com') AS users,
                            (SELECT count(*) FROM sessions WHERE revoked_at IS NULL) AS open_sessions
                     FROM users
@@ -225,5 +242,6 @@ async def test_delete_me_deactivates_the_account_and_revokes_its_sessions(
             )
         ).one()
     assert row.active is False
+    assert row.soft_deleted is True
     assert row.users == 1
     assert row.open_sessions == 0

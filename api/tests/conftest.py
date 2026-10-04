@@ -41,8 +41,25 @@ def ensure_migrated() -> None:
 
 async def _reset(engine: AsyncEngine) -> None:
     async with engine.begin() as connection:
+        await connection.execute(text("DELETE FROM product_tags"))
+        await connection.execute(text("DELETE FROM products"))
+        await connection.execute(text("DELETE FROM tags"))
+        await connection.execute(text("DELETE FROM product_categories"))
+        await connection.execute(text("DELETE FROM audits"))
         await connection.execute(text("DELETE FROM sessions"))
         await connection.execute(text("DELETE FROM users"))
+        await connection.execute(
+            text(
+                """
+                UPDATE roles
+                SET deleted_at = NULL
+                WHERE slug IN ('admin', 'sales', 'customer')
+                """
+            )
+        )
+        await connection.execute(
+            text("DELETE FROM roles WHERE slug NOT IN ('admin', 'sales', 'customer')")
+        )
         await connection.run_sync(insert_bootstrap_admin)
 
 

@@ -108,16 +108,19 @@ async def test_login_rejects_bad_unknown_and_inactive_with_the_same_body(
     password: str,
 ) -> None:
     async with db_engine.begin() as connection:
+        customer_id = await connection.scalar(
+            text("SELECT id FROM roles WHERE slug = 'customer'")
+        )
         await connection.execute(
             text(
                 """
                 INSERT INTO users (
                     id, first_name, last_name, email, phone, password_hash,
-                    terms_accepted_at, active, must_change_password,
+                    terms_accepted_at, active, must_change_password, role_id,
                     created_at, updated_at
                 ) VALUES (
                     :id, 'Ana', 'Pérez', 'ana@example.com', '+5491168692694', :hash,
-                    :now, true, false, :now, :now
+                    :now, true, false, :role_id, :now, :now
                 )
                 """
             ),
@@ -125,6 +128,7 @@ async def test_login_rejects_bad_unknown_and_inactive_with_the_same_body(
                 "id": uuid4(),
                 "hash": hash_password("Sparks1!"),
                 "now": datetime.now(UTC),
+                "role_id": customer_id,
             },
         )
         await connection.execute(
@@ -132,11 +136,11 @@ async def test_login_rejects_bad_unknown_and_inactive_with_the_same_body(
                 """
                 INSERT INTO users (
                     id, first_name, last_name, email, phone, password_hash,
-                    terms_accepted_at, active, must_change_password,
+                    terms_accepted_at, active, must_change_password, role_id,
                     created_at, updated_at
                 ) VALUES (
                     :id, 'Gone', 'User', 'gone@example.com', '+5491100000000', :hash,
-                    :now, false, false, :now, :now
+                    :now, false, false, :role_id, :now, :now
                 )
                 """
             ),
@@ -144,6 +148,7 @@ async def test_login_rejects_bad_unknown_and_inactive_with_the_same_body(
                 "id": uuid4(),
                 "hash": hash_password("Sparks1!"),
                 "now": datetime.now(UTC),
+                "role_id": customer_id,
             },
         )
 
@@ -160,3 +165,83 @@ async def test_login_rejects_bad_unknown_and_inactive_with_the_same_body(
             await connection.execute(text("SELECT count(*) FROM sessions"))
         ).scalar_one()
     assert count == 0
+
+
+async def test_login_rejects_soft_deleted_user_with_the_same_body(
+    db_engine: AsyncEngine,
+) -> None:
+    async with await _client() as client:
+        created = await client.post("/auth/register", json=_register_body())
+        assert created.status_code == 201
+
+    async with db_engine.begin() as connection:
+        await connection.execute(
+            text(
+                """
+                UPDATE users
+                SET deleted_at = :now
+                WHERE email = 'ana@example.com'
+                """
+            ),
+            {"now": datetime.now(UTC)},
+        )
+
+    async with await _client() as client:
+        response = await client.post(
+            "/auth/login",
+            json={"email": "ana@example.com", "password": "Sparks1!"},
+        )
+
+    assert response.status_code == 401
+    assert response.json() == _INVALID
+
+
+async def test_backoffice_login_requires_backoffice_access(
+    db_engine: AsyncEngine,
+) -> None:
+    async with await _client() as client:
+        created = await client.post("/auth/register", json=_register_body())
+        assert created.status_code == 201
+
+        denied = await client.post(
+            "/auth/login",
+            json={
+                "email": "ana@example.com",
+                "password": "Sparks1!",
+                "location": "backoffice",
+            },
+        )
+        assert denied.status_code == 403
+        assert denied.json() == {
+            "code": "forbidden",
+            "detail": "No tenés acceso al panel.",
+        }
+
+        store = await client.post(
+            "/auth/login",
+            json={
+                "email": "ana@example.com",
+                "password": "Sparks1!",
+                "location": "store",
+            },
+        )
+        assert store.status_code == 200
+        assert store.json()["access_token"]
+
+        admin = await client.post(
+            "/auth/login",
+            json={
+                "email": "admin@sparksinsumos.com",
+                "password": "admin123456",
+                "location": "backoffice",
+            },
+        )
+        assert admin.status_code == 200
+        assert admin.json()["access_token"]
+
+    async with db_engine.connect() as connection:
+        count = (
+            await connection.execute(text("SELECT count(*) FROM sessions"))
+        ).scalar_one()
+    # store customer session + admin backoffice session; denied created none
+    assert count == 2

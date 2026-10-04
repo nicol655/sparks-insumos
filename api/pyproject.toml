@@ -11,6 +11,8 @@ dependencies = [
     "alembic",
     "pydantic-settings",
     "pwdlib[argon2]",
+    "boto3>=1.43.103",
+    "python-multipart>=0.0.32",
 ]
 
 [dependency-groups]

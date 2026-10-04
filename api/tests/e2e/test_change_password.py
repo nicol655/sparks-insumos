@@ -77,20 +77,28 @@ async def test_change_password_rejects_reusing_the_current_password(
 ) -> None:
     now = datetime.now(UTC)
     async with db_engine.begin() as connection:
+        customer_id = await connection.scalar(
+            text("SELECT id FROM roles WHERE slug = 'customer'")
+        )
         await connection.execute(
             text(
                 """
                 INSERT INTO users (
                     id, first_name, last_name, email, phone, password_hash,
-                    terms_accepted_at, active, must_change_password,
+                    terms_accepted_at, active, must_change_password, role_id,
                     created_at, updated_at
                 ) VALUES (
                     :id, 'Ana', 'Pérez', 'ana@example.com', '+5491168692694', :hash,
-                    :now, true, true, :now, :now
+                    :now, true, true, :role_id, :now, :now
                 )
                 """
             ),
-            {"id": uuid4(), "hash": hash_password("Sparks1!"), "now": now},
+            {
+                "id": uuid4(),
+                "hash": hash_password("Sparks1!"),
+                "now": now,
+                "role_id": customer_id,
+            },
         )
 
     async with await _client() as client:

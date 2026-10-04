@@ -46,6 +46,8 @@ async def test_register_creates_a_user_without_a_session_or_password(
     assert body["phone"] == "+5491168692694"
     assert body["active"] is True
     assert body["must_change_password"] is False
+    assert body["role"] == "customer"
+    assert "role_id" in body
     assert "password" not in body
     assert "password_hash" not in body
     assert "Sparks1!" not in response.text
@@ -54,9 +56,17 @@ async def test_register_creates_a_user_without_a_session_or_password(
     async with db_engine.connect() as connection:
         row = (
             await connection.execute(
-                text("SELECT password_hash FROM users WHERE email = 'ana@example.com'")
+                text(
+                    """
+                    SELECT u.password_hash, r.slug
+                    FROM users u
+                    JOIN roles r ON r.id = u.role_id
+                    WHERE u.email = 'ana@example.com'
+                    """
+                )
             )
         ).one()
+    assert row.slug == "customer"
     assert "Sparks1!" not in row.password_hash
     assert verify_password("Sparks1!", row.password_hash)
     assert await _count(db_engine, "sessions") == 0
@@ -103,20 +113,28 @@ async def test_register_rejects_an_inactive_email(db_engine: AsyncEngine) -> Non
     before = await _count(db_engine, "users")
     now = datetime.now(UTC)
     async with db_engine.begin() as connection:
+        customer_id = await connection.scalar(
+            text("SELECT id FROM roles WHERE slug = 'customer'")
+        )
         await connection.execute(
             text(
                 """
                 INSERT INTO users (
                     id, first_name, last_name, email, phone, password_hash,
-                    terms_accepted_at, active, must_change_password,
+                    terms_accepted_at, active, must_change_password, role_id,
                     created_at, updated_at
                 ) VALUES (
                     :id, 'Gone', 'User', 'gone@example.com', '+5491100000000', :hash,
-                    :now, false, false, :now, :now
+                    :now, false, false, :role_id, :now, :now
                 )
                 """
             ),
-            {"id": uuid4(), "hash": hash_password("Sparks1!"), "now": now},
+            {
+                "id": uuid4(),
+                "hash": hash_password("Sparks1!"),
+                "now": now,
+                "role_id": customer_id,
+            },
         )
 
     async with await _client() as client:

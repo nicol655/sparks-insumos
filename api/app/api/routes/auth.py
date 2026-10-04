@@ -7,12 +7,18 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import Authenticated, get_authenticated, require_password_changed
+from app.api.deps import (
+    Authenticated,
+    get_authenticated,
+    has_permission,
+    require_password_changed,
+)
 from app.api.errors import DomainError
 from app.config import get_settings
 from app.db import get_session
 from app.models import Session as UserSession
 from app.models import User
+from app.roles import role_id_for_slug
 from app.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
@@ -20,6 +26,7 @@ from app.schemas.auth import (
     RegisterRequest,
     TokenResponse,
     UserPublic,
+    to_user_public,
 )
 from app.security.passwords import hash_password, verify_password
 from app.security.sessions import hash_token, new_access_token
@@ -29,13 +36,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 _EMAIL_TAKEN = "Ese correo ya está registrado"
 _INVALID_CREDENTIALS = "Credenciales inválidas"
 _ACTION_DENIED = "Acción denegada"
+_BACKOFFICE_FORBIDDEN = "No tenés acceso al panel."
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 SessionUser = Annotated[Authenticated, Depends(get_authenticated)]
 ReadyUser = Annotated[Authenticated, Depends(require_password_changed)]
 
 
 @router.post("/register", status_code=201, response_model=UserPublic)
-async def register(body: RegisterRequest, session: SessionDep) -> User:
+async def register(body: RegisterRequest, session: SessionDep) -> UserPublic:
     existing = await session.scalar(select(User.id).where(User.email == body.email))
     if existing is not None:
         raise DomainError(409, "email_taken", _EMAIL_TAKEN)
@@ -50,6 +58,7 @@ async def register(body: RegisterRequest, session: SessionDep) -> User:
         terms_accepted_at=now,
         active=True,
         must_change_password=False,
+        role_id=await role_id_for_slug(session, "customer"),
         created_at=now,
         updated_at=now,
     )
@@ -60,7 +69,7 @@ async def register(body: RegisterRequest, session: SessionDep) -> User:
         await session.rollback()
         raise DomainError(409, "email_taken", _EMAIL_TAKEN) from exc
     await session.refresh(user)
-    return user
+    return to_user_public(user)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -69,9 +78,15 @@ async def login(body: LoginRequest, session: SessionDep) -> TokenResponse:
     if (
         user is None
         or not user.active
+        or user.deleted_at is not None
         or not verify_password(body.password, user.password_hash)
     ):
         raise DomainError(401, "invalid_credentials", _INVALID_CREDENTIALS)
+
+    if body.location == "backoffice" and not await has_permission(
+        session, user.role_id, "backoffice_access", None
+    ):
+        raise DomainError(403, "forbidden", _BACKOFFICE_FORBIDDEN)
 
     token = new_access_token()
     now = datetime.now(UTC)
