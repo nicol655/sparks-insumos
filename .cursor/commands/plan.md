@@ -10,5 +10,7 @@ Produce the technical plan for the feature whose `spec.md` is approved.
 3. Every technical choice must trace to a requirement and comply with the
    constitution. For non-obvious choices, add an ADR in `.ai/decisions/` and link it.
 4. Do not write code yet.
+5. Write the plan (and any new ADR) in **English**
+   (`.cursor/rules/50-docs-language.mdc`).
 
 End by summarizing the plan and any risks, then hand off to `/tasks`.

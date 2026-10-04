@@ -16,6 +16,8 @@ person's chat history.
 - Reusable workflows: `.cursor/commands/**`
 - Quality gates: `.cursor/verify.json`, `.cursor/hooks/**`
 
+Write `.ai/**` and `.cursor/**` prose in English (`50-docs-language.mdc`).
+
 Never rely on ephemeral chat memory or personal settings for anything a teammate
 would need. If it matters, write it into one of the files above and commit it.
 

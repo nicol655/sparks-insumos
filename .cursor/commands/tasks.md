@@ -9,5 +9,6 @@ Turn the approved `plan.md` into an executable checklist.
 3. Give each task a clear file path and, where relevant, a test-first pairing.
 4. Include a Dependencies section and a Definition of Done that requires `/verify`
    to pass and `.ai/progress.md` to be updated.
+5. Write `tasks.md` in **English** (`.cursor/rules/50-docs-language.mdc`).
 
 End by presenting the task list; then proceed with `/implement`.

@@ -14,4 +14,5 @@ Update whatever changed:
 5. The active feature's `tasks.md` — check off completed tasks.
 
 Prefer deleting stale statements over stacking caveats. Reference files instead
-of pasting code. Then summarize what you saved.
+of pasting code. Write all updates in **English**
+(`.cursor/rules/50-docs-language.mdc`). Then summarize what you saved.

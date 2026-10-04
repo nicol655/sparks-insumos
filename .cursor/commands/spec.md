@@ -10,5 +10,6 @@ Create or refine the specification for the feature described after the command.
 4. Resolve ambiguity by asking the user — do not invent requirements. List any
    open questions explicitly and stop for answers if they block the spec.
 5. Keep it about the *what/why*, not the *how* (that's `/plan`).
+6. Write the spec in **English** (`.cursor/rules/50-docs-language.mdc`).
 
 End by summarizing the spec and asking for approval before `/plan`.

@@ -29,6 +29,8 @@ Update whatever changed so the next person/agent starts where you left off:
 
 ## Writing rules
 
+- Write in **English** (see `50-docs-language.mdc`). When editing an older
+  Spanish section, rewrite that section in English rather than extending it.
 - Be concrete and current. Delete stale statements instead of piling caveats.
 - Reference files/paths instead of pasting code, so notes don't rot.
 - Keep each file focused and skimmable. Prefer bullet lists over prose.

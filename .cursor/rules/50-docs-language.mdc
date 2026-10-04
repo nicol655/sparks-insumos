@@ -1,0 +1,35 @@
+---
+description: English-only for .ai and .cursor docs and agent prompts
+alwaysApply: true
+---
+
+# Documentation & prompt language
+
+All project memory and agent control surfaces are written in **English**.
+
+## Scope (must be English)
+
+- Everything under `.ai/` — including `progress.md`, specs, plans, tasks,
+  ADRs, glossary, lessons, and README.
+- Everything under `.cursor/` — rules, commands, skills, hooks docs, and
+  verify-related notes that are human/agent prose.
+
+New or edited files in those trees use English. Do not add new Spanish (or
+other) prose there.
+
+## Out of scope (unchanged)
+
+- Product UI copy and locale files (`es` / `en` dictionaries, route path
+  segments like `catalogo`, storefront/backoffice strings). Those follow
+  product i18n rules, not this rule.
+- Historical Spanish already in `.ai/` or `.cursor/` may remain until
+  deliberately rewritten; when you touch a section, prefer rewriting that
+  section in English rather than extending Spanish.
+- Exception: `.ai/progress.md` is fully English (token-sensitive handoff).
+  Keep new progress entries in English and concise.
+
+## Prompts
+
+User and agent prompts for this project are in English from now on. Reply and
+plan in English unless the user explicitly asks for another language for a
+single reply.

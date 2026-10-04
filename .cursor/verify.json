@@ -39,6 +39,30 @@
       "command": "docker compose -f docker/docker-compose.yml run --rm api uv run pytest",
       "enabled": true,
       "description": "pytest unit and e2e against Postgres. Starts db; not --no-deps."
+    },
+    {
+      "name": "backoffice-typecheck",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps backoffice npm run typecheck",
+      "enabled": true,
+      "description": "tsc --noEmit inside the backoffice container."
+    },
+    {
+      "name": "backoffice-lint",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps backoffice npm run lint",
+      "enabled": true,
+      "description": "ESLint inside the backoffice container."
+    },
+    {
+      "name": "backoffice-test",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps backoffice npm run test",
+      "enabled": true,
+      "description": "Vitest unit and component suite. No API required."
+    },
+    {
+      "name": "backoffice-build",
+      "command": "docker compose -f docker/docker-compose.yml run --rm --no-deps backoffice npm run build",
+      "enabled": true,
+      "description": "next build (standalone output) for the backoffice."
     }
   ]
 }

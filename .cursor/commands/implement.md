@@ -11,6 +11,7 @@ Execute the feature's `tasks.md`, respecting the whole workflow.
    root cause — never disable a test to pass.
 5. Check off completed tasks in `tasks.md`.
 6. Before stopping, update `.ai/progress.md` (state + next step) and record any
-   decision (ADR) or gotcha (`lessons.md`).
+   decision (ADR) or gotcha (`lessons.md`). Write those updates in **English**
+   (`.cursor/rules/50-docs-language.mdc`).
 
 Stop and ask if you hit an ambiguity or a decision with real trade-offs.
