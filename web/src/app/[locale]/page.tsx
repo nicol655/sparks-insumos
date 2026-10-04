@@ -13,6 +13,10 @@ import { routing } from "@/i18n/routing";
 
 const FEATURED_LIMIT = 4;
 
+// The featured row comes from the live catalogue. A static page would
+// freeze it at `next build`.
+export const dynamic = "force-dynamic";
+
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
@@ -26,7 +30,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
     repository.getFacets(locale),
   ]);
 
-  const featured = list.items.filter((product) => product.stock > 0).slice(0, FEATURED_LIMIT);
+  const featured = list.items
+    .filter((product) => product.stock === null || product.stock > 0)
+    .slice(0, FEATURED_LIMIT);
 
   return (
     <main>

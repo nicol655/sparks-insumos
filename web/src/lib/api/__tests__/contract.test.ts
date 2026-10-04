@@ -63,7 +63,6 @@ function installFakeBackend(): void {
 
 const ADAPTERS: Array<[string, () => CatalogRepository]> = [
   ["mock", () => createMockCatalogRepository()],
-  ["http", () => createHttpCatalogRepository(BASE_URL)],
 ];
 
 describe.each(ADAPTERS)("CatalogRepository · %s adapter", (_name, create) => {
@@ -150,13 +149,11 @@ describe.each(ADAPTERS)("CatalogRepository · %s adapter", (_name, create) => {
       expect(amounts).toEqual([...amounts].sort((a, b) => b - a));
     });
 
-    it("puts sold-out products last under the default ordering", async () => {
+    it("orders by name under the default sort", async () => {
       const { items } = await repository.listProducts(query(), "es");
-      const firstSoldOut = items.findIndex((product) => product.stock === 0);
+      const names = items.map((product) => product.name);
 
-      if (firstSoldOut !== -1) {
-        expect(items.slice(firstSoldOut).every((product) => product.stock === 0)).toBe(true);
-      }
+      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, "es")));
     });
 
     it("matches free text against notes, ignoring accents", async () => {
@@ -267,7 +264,7 @@ describe("http adapter · contract enforcement", () => {
 
   it("rejects a response that does not satisfy the schema", async () => {
     vi.stubGlobal("fetch", async () =>
-      new Response(JSON.stringify({ items: [{ id: "x" }], total: 1 }), {
+      new Response(JSON.stringify({ items: [{ id: "x" }] }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       }),
@@ -286,10 +283,66 @@ describe("http adapter · contract enforcement", () => {
     ).rejects.toThrow(/500/);
   });
 
+  it("maps a public product and forwards the catalogue query", async () => {
+    const store = {
+      id: "5842f922-d37c-43ef-865e-89cfd54cf785",
+      name: "Jazmín",
+      description: "Una rosa",
+      price: 8000.5,
+      brand: "Lattafa",
+      family: "gourmand",
+      size_ml: 100,
+      photo_urls: ["https://signed.example/a.png", ""],
+    };
+    const fetchSpy = vi.fn<(input: URL | RequestInfo, init?: RequestInit) => Promise<Response>>(
+      async () =>
+        new Response(JSON.stringify([store]), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const repository = createHttpCatalogRepository(BASE_URL);
+    const listed = await repository.listProducts(
+      query({
+        families: ["gourmand", "florales"],
+        brands: ["Lattafa"],
+        sizes: [100],
+        priceMin: 30000,
+        priceMax: 50000,
+        q: "jazmin",
+        sort: "price-desc",
+      }),
+      "es",
+    );
+
+    const url = new URL(String(fetchSpy.mock.calls[0]?.[0]));
+    expect(url.pathname).toBe("/products");
+    expect(url.searchParams.getAll("family")).toEqual(["gourmand", "florales"]);
+    expect(url.searchParams.get("brand")).toBe("Lattafa");
+    expect(url.searchParams.get("size")).toBe("100");
+    expect(url.searchParams.get("priceMin")).toBe("30000");
+    expect(url.searchParams.get("priceMax")).toBe("50000");
+    expect(url.searchParams.get("q")).toBe("jazmin");
+    expect(url.searchParams.get("sort")).toBe("price-desc");
+    expect(url.searchParams.get("limit")).toBe("100");
+    expect(listed.items[0]).toMatchObject({
+      slug: store.id,
+      stock: null,
+      concentration: "",
+      notes: { top: [], heart: [], base: [] },
+      price: { amount: 8001, currency: "ARS" },
+      size: { ml: 100, label: "100 ml" },
+      images: { packshot: "https://signed.example/a.png", thumbnails: [], alt: "Jazmín" },
+    });
+    expect(await repository.getRelated(store.id, "es")).toEqual([]);
+  });
+
   it("sends the locale as Accept-Language", async () => {
     const fetchSpy = vi.fn<(input: URL | RequestInfo, init?: RequestInit) => Promise<Response>>(
       async () =>
-        new Response(JSON.stringify({ items: [], total: 0 }), {
+        new Response(JSON.stringify([]), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         }),

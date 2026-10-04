@@ -18,10 +18,9 @@ import { normalize, productMatchesQuery, searchIndex } from "@/lib/catalog/query
 export function createMockCatalogRepository(): CatalogRepository {
   return {
     async listProducts(query, locale) {
-      const matches = sortProducts(
+      const matches =         sortProducts(
         catalogFor(locale).filter((product) => productMatchesQuery(product, query)),
         query.sort,
-        query.q,
       );
 
       return { items: matches, total: matches.length };
@@ -65,7 +64,7 @@ export function createMockCatalogRepository(): CatalogRepository {
   };
 }
 
-function sortProducts(products: Product[], sort: CatalogQuery["sort"], term?: string): Product[] {
+function sortProducts(products: Product[], sort: CatalogQuery["sort"]): Product[] {
   const sorted = [...products];
 
   switch (sort) {
@@ -73,31 +72,15 @@ function sortProducts(products: Product[], sort: CatalogQuery["sort"], term?: st
       return sorted.sort((a, b) => a.price.amount - b.price.amount || byName(a, b));
     case "price-desc":
       return sorted.sort((a, b) => b.price.amount - a.price.amount || byName(a, b));
+    case "name-desc":
+      return sorted.sort((a, b) => b.name.localeCompare(a.name, "es") || a.id.localeCompare(b.id));
     case "name-asc":
       return sorted.sort(byName);
-    case "relevance":
-      // Without a search term "relevance" means in-stock first, then by name:
-      // a sold-out bottle should not head the grid.
-      return sorted.sort(
-        (a, b) => Number(b.stock > 0) - Number(a.stock > 0) || relevance(b, term) - relevance(a, term) || byName(a, b),
-      );
   }
 }
 
-/** Name matches outrank note matches when the shopper typed something. */
-function relevance(product: Product, term?: string): number {
-  if (!term) return 0;
-
-  const needle = normalize(term);
-  if (normalize(product.name).startsWith(needle)) return 3;
-  if (normalize(`${product.brand} ${product.name}`).includes(needle)) return 2;
-  if (searchIndex(product).includes(needle)) return 1;
-
-  return 0;
-}
-
 function byName(a: Product, b: Product): number {
-  return `${a.brand} ${a.name}`.localeCompare(`${b.brand} ${b.name}`, "es");
+  return a.name.localeCompare(b.name, "es") || a.id.localeCompare(b.id);
 }
 
 function buildFacets(catalog: Product[]): Facets {
@@ -106,7 +89,7 @@ function buildFacets(catalog: Product[]): Facets {
   return {
     families: countBy(catalog, (product) => product.family),
     brands: countBy(catalog, (product) => product.brand),
-    sizes: [...tally(catalog.map((product) => product.size.ml))]
+    sizes: [...tally(catalog.flatMap((product) => (product.size ? [product.size.ml] : [])))]
       .map(([value, count]) => ({ value, count }))
       .sort((a, b) => a.value - b.value),
     price: {

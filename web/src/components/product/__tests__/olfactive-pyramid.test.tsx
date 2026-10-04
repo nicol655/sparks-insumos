@@ -19,6 +19,14 @@ describe("OlfactivePyramid", () => {
     expect(screen.getByText("Ámbar · Vainilla · Almizcle")).toBeInTheDocument();
   });
 
+  it("renders nothing when the product has no notes", () => {
+    const { container } = renderWithIntl(
+      <OlfactivePyramid product={{ ...product, notes: { top: [], heart: [], base: [] } }} />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it("has no accessibility violations", async () => {
     const { container } = renderWithIntl(<OlfactivePyramid product={product} />);
 

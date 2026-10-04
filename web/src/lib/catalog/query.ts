@@ -31,7 +31,7 @@ export function productMatchesQuery(product: Product, query: CatalogQuery): bool
 
   if (query.families.length > 0 && !query.families.includes(product.family)) return false;
   if (query.brands.length > 0 && !query.brands.includes(product.brand)) return false;
-  if (query.sizes.length > 0 && !query.sizes.includes(product.size.ml)) return false;
+  if (query.sizes.length > 0 && (product.size === null || !query.sizes.includes(product.size.ml))) return false;
   if (query.priceMin !== undefined && product.price.amount < query.priceMin) return false;
   if (query.priceMax !== undefined && product.price.amount > query.priceMax) return false;
   if (needle && !searchIndex(product).includes(needle)) return false;

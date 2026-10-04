@@ -9,13 +9,26 @@ import { renderWithIntl } from "@/test/i18n";
 const product = catalogFor("es").find((item) => item.slug === "bharara-king")!;
 
 describe("SpecTable", () => {
-  it("shows family, concentration and size", () => {
+  it("shows concentration and size, and nothing the API does not store", () => {
     renderWithIntl(<SpecTable product={product} />);
 
-    expect(screen.getByRole("heading", { name: "Ficha técnica" })).toBeInTheDocument();
-    expect(screen.getByText("Ámbar & especias")).toBeInTheDocument();
+    expect(screen.getByText("Concentración")).toBeInTheDocument();
     expect(screen.getByText("Extrait de Parfum")).toBeInTheDocument();
     expect(screen.getByText("100 ml")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Ficha técnica" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Duración")).not.toBeInTheDocument();
+    expect(screen.queryByText("Estela")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ocasión")).not.toBeInTheDocument();
+    expect(screen.queryByText("SKU")).not.toBeInTheDocument();
+    expect(screen.queryByText("Eau de parfum")).not.toBeInTheDocument();
+  });
+
+  it("renders nothing when concentration and size are empty", () => {
+    const { container } = renderWithIntl(
+      <SpecTable product={{ ...product, concentration: "", size: null }} />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("has no accessibility violations", async () => {

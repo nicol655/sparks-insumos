@@ -34,7 +34,7 @@ export function CartAside({ cart }: Props) {
               quantity: line.quantity,
               brand: line.product.brand,
               name: line.product.name,
-              size: line.product.size.label,
+              size: line.product.size?.label ?? "",
               price: formatPrice(line.lineTotal, locale),
             }),
           ),

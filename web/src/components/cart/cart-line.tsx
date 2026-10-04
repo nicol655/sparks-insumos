@@ -73,7 +73,7 @@ export function CartLineRow({ line, layout }: Props) {
               : "font-mono text-mono-meta text-text-meta tracking-[0.12em] uppercase"
           }
         >
-          {line.product.brand} · {line.product.size.label}
+          {[line.product.brand, line.product.size?.label].filter(Boolean).join(" · ")}
         </p>
         <Link
           href={{ pathname: "/catalogo/[slug]", params: { slug: line.slug } }}

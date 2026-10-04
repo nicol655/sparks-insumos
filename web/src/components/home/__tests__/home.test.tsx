@@ -114,7 +114,7 @@ describe("OlfactiveFamilies", () => {
 
 describe("Featured", () => {
   it("uses the proto title and a view-all link into the catalogue", () => {
-    const product = catalogFor("es").find((item) => item.stock > 0)!;
+    const product = catalogFor("es").find((item) => item.stock !== null && item.stock > 0)!;
     renderWithIntl(<Featured products={[product]} />);
 
     expect(screen.getByRole("heading", { name: "Los más pedidos" })).toBeInTheDocument();

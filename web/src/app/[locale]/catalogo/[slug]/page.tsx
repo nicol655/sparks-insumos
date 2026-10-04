@@ -3,18 +3,23 @@ import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
-import { Badge } from "@/components/primitives/badge";
 import { DetailsAccordion } from "@/components/product/details-accordion";
 import { Gallery } from "@/components/product/gallery";
 import { OlfactivePyramid } from "@/components/product/olfactive-pyramid";
+import { ProductCrumb, ProductIntro } from "@/components/product/product-intro";
 import { PurchaseBlock } from "@/components/product/purchase-block";
 import { Related } from "@/components/product/related";
 import { SpecTable } from "@/components/product/spec-table";
 import { catalogQuerySchema, catalogRepository } from "@/lib/api";
 import { routing } from "@/i18n/routing";
+import { env } from "@/lib/env";
 import { seoMetadata } from "@/lib/seo";
 
 export async function generateStaticParams() {
+  // The live catalogue changes in the backoffice. Prebuilding every id
+  // would freeze the set at `next build` and require the API to be up.
+  if (env.API_MODE === "http") return [];
+
   const { items } = await catalogRepository().listProducts(
     catalogQuerySchema.parse({}),
     routing.defaultLocale,
@@ -63,32 +68,20 @@ export default async function ProductPage({
 
   return (
     <main>
-      <div className="px-gutter flex flex-col gap-[30px] pt-section lg:grid lg:grid-cols-2 lg:items-start lg:gap-[30px]">
-        <div className="lg:sticky lg:top-[74px] lg:self-start">
+      <ProductCrumb name={product.name} />
+      <section className="border-border-hairline grid items-start border-b lg:grid-cols-2">
+        <div className="border-border-hairline min-w-0 p-7 lg:border-r xl:sticky xl:top-[74px] xl:self-start">
           <Gallery product={product} />
         </div>
 
-        <div className="min-w-0 p-[clamp(30px,4vw,48px)] lg:px-0 lg:pt-[clamp(30px,4vw,48px)]">
-          <p className="font-mono text-mono-meta text-text-meta mb-3 tracking-[0.12em] uppercase">
-            {product.brand}
-            {product.badge ? (
-              <span className="ml-3 align-middle">
-                <Badge>{product.badge}</Badge>
-              </span>
-            ) : null}
-          </p>
-          <h1 className="text-h1-page font-display">{product.name}</h1>
-          <p className="text-body-m text-text-muted mt-3 mb-8">
-            {product.concentration} · {product.size.label}
-          </p>
+        <div className="flex min-w-0 flex-col gap-6 px-[clamp(20px,3.8vw,52px)] pt-[clamp(30px,4vw,48px)] pb-[clamp(44px,5vw,66px)]">
+          <ProductIntro product={product} />
           <PurchaseBlock product={product} />
-          <div className="mt-12 flex flex-col gap-12">
-            <OlfactivePyramid product={product} />
-            <SpecTable product={product} />
-            <DetailsAccordion product={product} />
-          </div>
+          <OlfactivePyramid product={product} />
+          <SpecTable product={product} />
+          <DetailsAccordion />
         </div>
-      </div>
+      </section>
 
       <Related products={related} />
     </main>

@@ -34,7 +34,7 @@ describe("catalogue search params", () => {
     const params = toSearchParams(query());
 
     expect(params.toString()).toBe("");
-    expect(fromSearchParams(params).sort).toBe("relevance");
+    expect(fromSearchParams(params).sort).toBe("name-asc");
   });
 
   it("treats several family values as a union after parsing", () => {
@@ -47,7 +47,7 @@ describe("catalogue search params", () => {
     const parsed = fromSearchParams(new URLSearchParams("family=gourmand&sort=newest"));
 
     expect(parsed.families).toEqual(["gourmand"]);
-    expect(parsed.sort).toBe("relevance");
+    expect(parsed.sort).toBe("name-asc");
   });
 
   it("ignores malformed sizes and negative prices", () => {

@@ -1,27 +1,21 @@
 import { useTranslations } from "next-intl";
 
 import { Accordion } from "@/components/primitives/accordion";
-import type { Product } from "@/lib/api/contract";
-
-type Props = {
-  product: Product;
-};
 
 /**
- * T074 · RF-4. Description / shipping / returns, several panels at once,
- * body capped at 56ch by the primitive.
+ * T364 · the three panels start closed. Description is the packaging copy,
+ * not a second printing of the text under the title.
  */
-export function DetailsAccordion({ product }: Props) {
+export function DetailsAccordion() {
   const t = useTranslations();
 
   return (
     <Accordion
-      defaultOpen={["description"]}
       items={[
         {
           id: "description",
           title: t("product.description"),
-          content: product.description,
+          content: t("product.descriptionBody"),
         },
         {
           id: "shipping",

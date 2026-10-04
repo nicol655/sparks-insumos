@@ -11,8 +11,8 @@ import { MinusIcon, PlusIcon } from "@/components/icons";
 
 type Props = {
   value: number;
-  /** Upper bound, normally the product's stock. */
-  max: number;
+  /** Upper bound, normally the product's stock. Null means the stock is unknown. */
+  max: number | null;
   onChange: (quantity: number) => void;
   /** Already translated: "Disminuir cantidad" / "Aumentar cantidad" (§03). */
   decreaseLabel: string;
@@ -63,7 +63,7 @@ export function QuantityStepper({
       <button
         type="button"
         aria-label={increaseLabel}
-        disabled={value >= max}
+        disabled={max !== null && value >= max}
         onClick={() => onChange(value + 1)}
         className={STEP_BUTTON}
       >

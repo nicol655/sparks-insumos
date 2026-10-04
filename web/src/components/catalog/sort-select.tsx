@@ -11,10 +11,10 @@ type Props = {
 };
 
 const SORT_MESSAGE = {
-  relevance: "catalog.sortRelevance",
+  "name-asc": "catalog.sortNameAsc",
+  "name-desc": "catalog.sortNameDesc",
   "price-asc": "catalog.sortPriceAsc",
   "price-desc": "catalog.sortPriceDesc",
-  "name-asc": "catalog.sortNameAsc",
 } as const;
 
 /**

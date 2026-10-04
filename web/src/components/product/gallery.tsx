@@ -8,10 +8,10 @@ import type { Product } from "@/lib/api/contract";
 
 export const THUMB_COUNT = 3;
 
-/** Packshot plus three 1:1 slots, padding with the packshot when photos are missing. */
+/** Three slots. A missing photo stays empty instead of repeating the packshot. */
 export function gallerySources(product: Product): Array<string | null> {
   const thumbs: Array<string | null> = [...product.images.thumbnails];
-  while (thumbs.length < THUMB_COUNT) thumbs.push(product.images.packshot);
+  while (thumbs.length < THUMB_COUNT) thumbs.push(null);
 
   return thumbs.slice(0, THUMB_COUNT);
 }
@@ -21,14 +21,14 @@ type Props = {
 };
 
 /**
- * T071 · RF-4. Hero 4:5 capped at 62vh; three square thumbs, gap 12px.
- * The first frame is eager; the rest lazy. Explicit width/height avoid CLS.
+ * T361 · hero starts on the first photo. A thumbnail with a URL replaces it;
+ * clicking that thumbnail again restores the packshot. An empty slot is not a button.
  */
 export function Gallery({ product }: Props) {
   const t = useTranslations();
   const thumbs = gallerySources(product);
-  const [selected, setSelected] = useState(0);
-  const current = thumbs[selected] ?? product.images.packshot;
+  const [selected, setSelected] = useState<number | null>(null);
+  const current = selected === null ? product.images.packshot : (thumbs[selected] ?? product.images.packshot);
 
   return (
     <figure aria-label={t("product.gallery", { name: product.name })}>
@@ -48,24 +48,30 @@ export function Gallery({ product }: Props) {
 
           return (
             <li key={index}>
-              <button
-                type="button"
-                aria-pressed={pressed}
-                aria-label={t("product.thumbnail", { n: index + 1, name: product.name })}
-                onClick={() => setSelected(index)}
-                className={[
-                  "block w-full border overflow-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink",
-                  pressed ? "border-ink" : "border-border-hairline hover:border-ink/40",
-                ].join(" ")}
-              >
-                <Packshot
-                  alt={product.images.alt}
-                  src={src}
-                  ratio="1 / 1"
-                  intrinsicWidth={400}
-                  sizes="120px"
-                />
-              </button>
+              {src ? (
+                <button
+                  type="button"
+                  aria-pressed={pressed}
+                  aria-label={t("product.thumbnail", { n: index + 1, name: product.name })}
+                  onClick={() => setSelected(pressed ? null : index)}
+                  className={[
+                    "block w-full overflow-hidden border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink",
+                    pressed ? "border-ink" : "border-border-hairline hover:border-ink/40",
+                  ].join(" ")}
+                >
+                  <Packshot
+                    alt={product.images.alt}
+                    src={src}
+                    ratio="1 / 1"
+                    intrinsicWidth={400}
+                    sizes="120px"
+                  />
+                </button>
+              ) : (
+                <div className="border-border-hairline block w-full overflow-hidden border">
+                  <Packshot alt={product.images.alt} src={null} ratio="1 / 1" intrinsicWidth={400} />
+                </div>
+              )}
             </li>
           );
         })}

@@ -87,6 +87,7 @@ const SHARED_ACROSS_LANGUAGES = [
   "metadata.title",
   "metadata.titleTemplate",
   "nav.sets",
+  "product.crumbSep",
   "product.metaTitle",
   "whatsapp.brand",
   "whatsapp.orderLine",

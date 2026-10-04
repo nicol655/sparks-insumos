@@ -25,22 +25,24 @@ export const moneySchema = z.object({
 export const productSchema = z.object({
   id: z.string().min(1),
   slug: z.string().min(1),
-  brand: z.string().min(1),
+  brand: z.string(),
   name: z.string().min(1),
-  family: z.string().min(1),
-  concentration: z.string().min(1),
-  size: z.object({
-    ml: z.number().int().positive(),
-    label: z.string().min(1),
-  }),
+  family: z.string(),
+  concentration: z.string(),
+  size: z
+    .object({
+      ml: z.number().int().positive(),
+      label: z.string().min(1),
+    })
+    .nullable(),
   price: moneySchema,
   notes: z.object({
-    top: z.array(z.string().min(1)).min(1),
-    heart: z.array(z.string().min(1)).min(1),
-    base: z.array(z.string().min(1)).min(1),
+    top: z.array(z.string().min(1)),
+    heart: z.array(z.string().min(1)),
+    base: z.array(z.string().min(1)),
   }),
   description: z.string().min(1),
-  stock: z.number().int().nonnegative(),
+  stock: z.number().int().nonnegative().nullable(),
   /** Free text badge shown top-left on the card, e.g. "Nuevo". */
   badge: z.string().min(1).optional(),
   images: z.object({
@@ -60,7 +62,7 @@ export const productSchema = z.object({
  * set covers the obvious cases; confirm against the prototype before the
  * catalogue ships.
  */
-export const productSortSchema = z.enum(["relevance", "price-asc", "price-desc", "name-asc"]);
+export const productSortSchema = z.enum(["price-asc", "price-desc", "name-asc", "name-desc"]);
 
 export const catalogQuerySchema = z.object({
   families: z.array(z.string().min(1)).default([]),
@@ -71,7 +73,7 @@ export const catalogQuerySchema = z.object({
   priceMax: z.number().int().nonnegative().optional(),
   /** Free text, also fed by the global search overlay. */
   q: z.string().optional(),
-  sort: productSortSchema.default("relevance"),
+  sort: productSortSchema.default("name-asc"),
 });
 
 export const productListSchema = z.object({

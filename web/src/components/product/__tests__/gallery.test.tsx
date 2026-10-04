@@ -1,24 +1,39 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { Gallery, gallerySources } from "@/components/product/gallery";
 import { packshotSrcSet } from "@/components/catalog/packshot";
+import { Gallery, gallerySources } from "@/components/product/gallery";
 import { catalogFor } from "@/fixtures/catalog";
 import { expectNoA11yViolations } from "@/test/a11y";
 import { renderWithIntl } from "@/test/i18n";
 
 const product = catalogFor("es").find((item) => item.slug === "bharara-king")!;
 
+const withPhotos = {
+  ...product,
+  images: {
+    ...product.images,
+    packshot: "/a.webp",
+    thumbnails: ["/b.webp"],
+    alt: "King bottle",
+  },
+};
+
+function heroImage(): HTMLElement {
+  const figure = screen.getByRole("figure");
+  const hero = within(figure)
+    .getAllByRole("img")
+    .find((node) => !node.closest("ul"));
+
+  if (!hero) throw new Error("hero image missing");
+  return hero;
+}
+
 describe("gallerySources", () => {
-  it("always yields three slots, padding with the packshot", () => {
+  it("yields three slots and does not copy the packshot into the gaps", () => {
     expect(gallerySources(product)).toEqual([null, null, null]);
-    expect(
-      gallerySources({
-        ...product,
-        images: { ...product.images, packshot: "/a.webp", thumbnails: ["/b.webp"] },
-      }),
-    ).toEqual(["/b.webp", "/a.webp", "/a.webp"]);
+    expect(gallerySources(withPhotos)).toEqual(["/b.webp", null, null]);
   });
 });
 
@@ -31,39 +46,36 @@ describe("packshotSrcSet", () => {
 });
 
 describe("Gallery", () => {
-  it("exposes the packshot with a descriptive name and three thumbs", () => {
-    renderWithIntl(<Gallery product={product} />);
+  it("starts on the packshot and toggles a real thumbnail", async () => {
+    renderWithIntl(<Gallery product={withPhotos} />);
 
-    const shots = screen.getAllByRole("img", { name: product.images.alt });
-    expect(shots).toHaveLength(4);
-    expect(product.images.alt.toLowerCase()).not.toContain("imagen de producto");
-    expect(screen.getByRole("button", { name: "Vista 1 de King" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    expect(screen.getByRole("button", { name: "Vista 3 de King" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
+    expect(heroImage()).toHaveAttribute("src", "/a.webp");
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+
+    const thumb = screen.getByRole("button", { name: "Vista 1 de King" });
+    expect(thumb).toHaveAttribute("aria-pressed", "false");
+
+    await userEvent.click(thumb);
+
+    expect(thumb).toHaveAttribute("aria-pressed", "true");
+    expect(heroImage()).toHaveAttribute("src", "/b.webp");
+
+    await userEvent.click(thumb);
+
+    expect(thumb).toHaveAttribute("aria-pressed", "false");
+    expect(heroImage()).toHaveAttribute("src", "/a.webp");
   });
 
-  it("selects another thumbnail", async () => {
+  it("does not make an empty slot a button", () => {
     renderWithIntl(<Gallery product={product} />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Vista 2 de King" }));
-
-    expect(screen.getByRole("button", { name: "Vista 2 de King" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    expect(screen.getByRole("button", { name: "Vista 1 de King" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("img", { name: product.images.alt })).toHaveLength(4);
+    expect(product.images.alt.toLowerCase()).not.toContain("imagen de producto");
   });
 
   it("has no accessibility violations", async () => {
-    const { container } = renderWithIntl(<Gallery product={product} />);
+    const { container } = renderWithIntl(<Gallery product={withPhotos} />);
 
     await expectNoA11yViolations(container);
   });

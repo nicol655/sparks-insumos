@@ -25,8 +25,9 @@ export function ProductCard({ product }: Props) {
   const t = useTranslations();
   const locale = useLocale();
   const addToCart = useAddToCart();
-  const soldOut = product.stock <= 0;
+  const soldOut = product.stock === 0;
   const notes = [...product.notes.top, ...product.notes.heart].slice(0, 3).join(" · ");
+  const meta = [product.brand, product.size?.label].filter(Boolean).join(" · ");
 
   return (
     <li className="group flex flex-col gap-[13px]">
@@ -50,13 +51,13 @@ export function ProductCard({ product }: Props) {
             </span>
           ) : null}
         </div>
-        <p className="font-mono text-mono-meta text-text-meta tracking-[0.12em] uppercase">
-          {product.brand} · {product.size.label}
-        </p>
+        {meta ? (
+          <p className="font-mono text-mono-meta text-text-meta tracking-[0.12em] uppercase">{meta}</p>
+        ) : null}
         <h3 className="font-display text-h4 transition-colors">
           {product.name}
         </h3>
-        <p className="text-body-s text-text-muted">{notes}</p>
+        {notes ? <p className="text-body-s text-text-muted">{notes}</p> : null}
       </Link>
       <div className="mt-auto flex items-end justify-between gap-3">
         <p className="font-display text-h4">{formatPrice(product.price.amount, locale)}</p>

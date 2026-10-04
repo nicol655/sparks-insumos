@@ -22,7 +22,10 @@ describe("PurchaseBlock", () => {
     renderWithIntl(<PurchaseBlock product={inStock} />);
 
     expect(screen.getByText("$39.000")).toBeInTheDocument();
-    expect(screen.getByText("En stock")).toBeInTheDocument();
+    expect(screen.getByText("Hasta 3 cuotas sin interés")).toBeInTheDocument();
+    const stock = screen.getByText("En stock");
+    expect(stock.className).toContain("text-ink");
+    expect(stock.className).not.toContain("text-success");
 
     await userEvent.click(screen.getByRole("button", { name: "Aumentar cantidad" }));
     await userEvent.click(screen.getByRole("button", { name: "Agregar al carrito" }));
@@ -35,6 +38,19 @@ describe("PurchaseBlock", () => {
     expect(useUiStore.getState().toasts[0]?.message).toBe("Agregado al carrito");
   });
 
+  it("asks about this perfume when stock is unknown", () => {
+    renderWithIntl(<PurchaseBlock product={{ ...inStock, stock: null }} />);
+
+    expect(screen.getByText("$39.000")).toBeInTheDocument();
+    expect(screen.queryByText("En stock")).not.toBeInTheDocument();
+    expect(screen.queryByText("Sin stock")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Agregar al carrito" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Consultar este perfume" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^https:\/\/wa\.me\/5491168692694\?text=/),
+    );
+  });
+
   it("offers WhatsApp when the bottle is sold out", () => {
     renderWithIntl(<PurchaseBlock product={soldOut} />);
 
@@ -44,6 +60,7 @@ describe("PurchaseBlock", () => {
       "href",
       expect.stringMatching(/^https:\/\/wa\.me\/5491168692694\?text=/),
     );
+    expect(screen.queryByRole("link", { name: "Consultar este perfume" })).not.toBeInTheDocument();
   });
 
   it("has no accessibility violations", async () => {

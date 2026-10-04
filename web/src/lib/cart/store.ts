@@ -71,11 +71,11 @@ export const useCartStore = create<CartState>()(
 
       add: (product, quantity = 1) =>
         set((state) => {
-          if (product.stock <= 0) return state;
+          if (product.stock === 0) return state;
 
           const existing = state.items.find((item) => item.productId === product.id);
           const wanted = clamp((existing?.quantity ?? 0) + quantity);
-          const capped = Math.min(wanted, product.stock);
+          const capped = product.stock === null ? wanted : Math.min(wanted, product.stock);
 
           if (!existing) {
             return {
@@ -163,12 +163,12 @@ export async function resolveCart(
   items.forEach((item, index) => {
     const product = products[index];
 
-    if (!product || product.stock <= 0) {
+    if (!product || product.stock === 0) {
       unavailable.push(item);
       return;
     }
 
-    const quantity = Math.min(item.quantity, product.stock);
+    const quantity = product.stock === null ? item.quantity : Math.min(item.quantity, product.stock);
 
     lines.push({
       productId: item.productId,

@@ -87,6 +87,27 @@ describe("ProductCard", () => {
     expect(useCartStore.getState().items).toHaveLength(0);
   });
 
+  it("hides notes and the sold-out badge when the api product has neither", () => {
+    renderWithIntl(
+      <ul>
+        <ProductCard
+          product={{
+            ...inStock,
+            notes: { top: [], heart: [], base: [] },
+            stock: null,
+            size: null,
+            brand: "",
+          }}
+        />
+      </ul>,
+    );
+
+    expect(screen.queryByText("Bergamota · Manzana")).not.toBeInTheDocument();
+    expect(screen.queryByText("Sin stock")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Bharara/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Agregar" })).toBeEnabled();
+  });
+
   it("adds the product and opens the cart overlay", async () => {
     renderWithIntl(
       <ul>
