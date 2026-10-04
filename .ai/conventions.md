@@ -3,6 +3,14 @@
 Project-specific conventions. These extend `.cursor/rules/20-engineering.mdc`
 and win where they conflict.
 
+## Language (docs & agents)
+
+- All prose under `.ai/` and `.cursor/` is **English** (specs, plans, tasks,
+  ADRs, progress, rules, commands). See `.cursor/rules/50-docs-language.mdc`.
+- Agent prompts for this project are in English.
+- Product UI copy stays on the product i18n path (`messages/{es,en}.json`,
+  Spanish route segments in source, etc.). Do not mix that with docs language.
+
 ## Structure
 
 ```

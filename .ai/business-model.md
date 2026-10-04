@@ -28,8 +28,10 @@ orders, stock, customers, coupons, form messages, site text, and purchase rules.
 - **Member (Sparks Club):** has a permanent 5% discount, exclusive sales, and welcome coupon. In the backoffice, the level is called Club.
 - **Guest:** does not have that 5%. Can buy. Not a member.
 - **End-user:** who uses or sells the product. The makeup from the live store is sent in **various shades**.
-- **Team:** operators of the backoffice. Not customers. Three roles:
-  Administration, Logistics, Content.
+- **Team:** operators of the backoffice. Not customers. API roles are
+  `admin`, `sales`, and `customer` ([020](specs/020-roles-permissions/spec.md)).
+  Panel access requires `backoffice_access` on the role. Register and
+  unspecified creates default to `customer`.
 
 ## Problem / jobs-to-be-done
 
@@ -85,7 +87,7 @@ Navigation of design (three groups):
 | Pyramid | Output, heart, background |
 | Photos | Front packshot, atomizer, notes, lifestyle |
 
-**Users.** Customers: name, last name, email, phone, level (Club or Guest), status (active or blocked), internal notes. The team is invited separately. Deleting a customer also deletes the history, level, and coupons.
+**Users.** Customers: name, last name, email, phone, level (Club or Guest), status (active or blocked), internal notes, one role (`admin` / `sales` / `customer`). The team is invited separately. HTTP delete is soft (`deleted_at`); the email stays unique and history is not hard-removed.
 
 **Coupons.** Code, percentage or fixed amount in ARS, usage limit (0 = no limit), expiration date, for members only or all, active or paused.
 The codes drawn on the mockup are not published.
@@ -199,7 +201,7 @@ Cookies: the live store shows a consent banner.
 - **Via Cargo** still named in the live store. Default text in Adjustments says «Correo Argentino · transport to quote» and does not name Via Cargo. The field is editable.
 - **Backoffice catalog** is perfumería (perfume, set, body splash). Makeup, skincare and accessories remain on the live store and do not have a screen in this design.
 - **Rows of the mockup** are not planted as data.
-- **Spec 010** allows any account from the store. The design already requires role. The spec for roles is still not written.
+- **Spec 010** allowed any successful login into the panel. [020](specs/020-roles-permissions/spec.md) enforces roles and `backoffice_access` on the API; panel UI for roles/permissions is still later.
 
 ## Glossary link
 

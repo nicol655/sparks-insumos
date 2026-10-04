@@ -27,13 +27,21 @@ not a silent override.
 8. **Piso de compra.** El carrito no cierra (ni arma el WhatsApp de pedido)
    por debajo de **$30.000 ARS** de mercadería, sin el envío. Quiénes Somos
    dice $50.000; hasta que unifique el negocio, rige el mínimo del carrito.
-9. **Descuento por monto, no por código.** 5% desde $100.000 y 10% desde
-   $300.000 son automáticos sobre el subtotal. Un cupón (T083) no se inventa
-   ni se acumula con esos tramos hasta que existan reglas escritas.
+9. **Descuentos, tres instrumentos.** Sobre el subtotal, sin el envío:
+   5% desde $100.000 y 10% desde $300.000, automáticos; 5% permanente del
+   socio (Sparks Club); cupón que crea el backoffice (porcentaje o monto
+   fijo en ARS, tope de usos, vencimiento, todos o sólo socios). Los
+   códigos de la maqueta no son códigos vivos. El diseño no dice si se
+   suman: hasta esa regla, no se acumulan.
 10. **Envío a cargo del comprador.** Correo Argentino o Via Cargo, a cotizar
-    por tamaño y peso. No prometer envío gratis.
-11. **Pago vivo.** Efectivo o transferencia/depósito. Tarjeta o cuotas sólo
-    si el negocio las habilita; el prototipo no alcanza para implementarlas.
+    por tamaño y peso. No prometer envío gratis. El texto default de
+    Ajustes («Correo Argentino · transporte a cotizar») es editable y no
+    borra a Via Cargo.
+11. **Medios de pago.** Los define Ajustes del backoffice. El diseño los
+    deja habilitados: tarjeta hasta 3 cuotas sin interés, transferencia y
+    efectivo al retirar. Un medio apagado no se ofrece. El CBU de la
+    maqueta no es una cuenta publicada. Sin esos ajustes en la API, el
+    storefront no cobra con tarjeta.
 12. **Identidad y consumidor.** Pie de página: Sparks Insumos, CUIT
     `20-95827720-3`. Defensa =
     `https://www.argentina.gob.ar/produccion/defensadelconsumidor/formulario`.
@@ -42,3 +50,23 @@ not a silent override.
     inventar otras URLs legales.
 13. **Inspiraciones.** Si el SKU es réplica o inspiración, la UI lo dice.
     No atribuir la venta a la casa de diseñador.
+14. **Operator is not customer.** Every account has exactly one role
+    (`admin`, `sales`, or `customer`). Grants come from a seeded
+    permission catalog (controller + method, or method-less
+    `backoffice_access` / `change_backoffice_access`). A store account
+    does not enter the panel just by existing: the role must hold
+    `backoffice_access`. Permission denials look like missing auth
+    (opaque 401). Soft delete uses `deleted_at`; `active = false` is
+    block-without-delete. See [020](specs/020-roles-permissions/spec.md),
+    [ADR-0027](decisions/0027-rbac-catalogo-y-denegacion-opaca.md),
+    [ADR-0028](decisions/0028-soft-delete-deleted-at.md).
+15. **Stock.** Bajo = 1 a 3 unidades. Agotado = 0. Esa alerta es la del
+    resumen y la de la ficha. Destacados de la home: máximo 4, sólo
+    publicados.
+16. **Pedido.** Estados: pago pendiente, preparando, enviado, entregado,
+    cancelado. No hay otros. Enviado y entregado llevan tracking.
+17. **Diseño del backoffice.** Única fuente:
+    `https://claude.ai/artifact/NtzZJG94zfZrj3LpMvAtS9` (leída 2026-09-28).
+    Las filas de ejemplo no son catálogo, pedidos, cupones, ventas ni
+    CBU. La vidriera sigue en el PDF y en el artefacto
+    `QUUhcHp24QBtXkUG8sHPDj`.

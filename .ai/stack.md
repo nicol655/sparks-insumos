@@ -23,9 +23,11 @@ Docker. Ver [ADR-0004](./decisions/0004-docker-first.md).
 ### `api/` — esqueleto en marcha
 
 Cuentas y sesión: [007](specs/007-api-autenticacion/plan.md) · ADR-0010 · ADR-0011.
-El contrato del **catálogo** sigue en `web/src/lib/api/contract.ts`. El de
-identidad vive en el plan 007, no en ese archivo Zod (el frontend no se
-conecta en esta rebanada).
+Auditoría: [012](specs/012-auditoria/plan.md).
+Productos, categorías y tags: [013](specs/013-productos/plan.md) · ADR-0018.
+Fotos de producto: `boto3` y `python-multipart`, con doble en memoria en pytest.
+El contrato del **catálogo de la vidriera** sigue en `web/src/lib/api/contract.ts`.
+013 no lo reemplaza. El de identidad vive en el plan 007, no en ese Zod.
 
 ```powershell
 docker compose -f docker/docker-compose.yml up db api
@@ -36,6 +38,33 @@ docker compose -f docker/docker-compose.yml run --rm --no-deps api uv run ruff c
 
 `web` no depende de `db` ni de `api`. El gate de `web` sigue con `--no-deps`.
 
+### `backoffice/` — panel interno
+
+Login y guarda de sesión: [010](specs/010-backoffice/plan.md) · ADR-0014.
+El bearer vive en Zustand + `sessionStorage`. La UI no llama a `api/`
+directo: una server action usa `API_BASE_URL`.
+Cascarón, resumen y ajustes en texto fijo: [011](specs/011-backoffice-cascaron/plan.md).
+
+```powershell
+docker compose -f docker/docker-compose.yml up backoffice
+# http://localhost:3200/login  (o BACKOFFICE_PORT). El contenedor se llama sparks-backoffice.
+docker compose -f docker/docker-compose.yml run --rm --no-deps backoffice npm run verify
+```
+
+| Pieza | Versión | Nota |
+|-------|---------|------|
+| Next.js | 16.3.5 | App Router, `output: 'standalone'`. Sin next-intl |
+| React | 19.2.8 | |
+| TypeScript | 5.x | Mismos flags estrictos que `web/` |
+| Tailwind CSS | 4.x | Paleta copiada de `web/src/styles/theme.css` |
+| Zustand | 5.x | Sesión, `persist` en `sessionStorage` |
+| Zod | 4.x | Contrato del login |
+| Vitest | 5.x | jsdom + Testing Library. Sin Playwright |
+
+El gate (`.cursor/verify.json`) corre `api-lint` y `api-test` junto con los
+checks de `web` y de `backoffice`. `api-test` levanta `db` (sin `--no-deps`).
+`api-lint` no lo necesita. `backoffice-*` usa `--no-deps`.
+
 | Pieza | Elección |
 |-------|----------|
 | Python | 3.12, imagen oficial |
@@ -44,10 +73,6 @@ docker compose -f docker/docker-compose.yml run --rm --no-deps api uv run ruff c
 | Tests | pytest + pytest-asyncio + httpx, contra Postgres real |
 | Lint | Ruff |
 | Lock | `uv` + `uv.lock` (se genera al implementar; no hay pins en la spec) |
-
-El gate (`.cursor/verify.json`) corre `api-lint` y `api-test` junto con los
-checks de `web`. `api-test` levanta `db` (sin `--no-deps`). `api-lint` no lo
-necesita.
 
 ## Comandos
 
@@ -96,7 +121,8 @@ un comando puntual.
 | Archivo | Para qué |
 |---------|----------|
 | `web/.env.example` | `API_MODE`, `API_BASE_URL`, `NEXT_PUBLIC_WHATSAPP_NUMBER`, `NEXT_PUBLIC_ANNOUNCEMENT`, `NEXT_PUBLIC_SITE_URL` (opcional; origen absoluto para OG / hreflang) |
-| `docker/.env.example` | Overrides de compose. Hoy sólo `WEB_PORT` |
+| `docker/.env.example` | Overrides de compose: `WEB_PORT`, `API_PORT`, `POSTGRES_PORT`, `BACKOFFICE_PORT` |
+| `backoffice/.env.example` | `API_BASE_URL` (sólo servidor) |
 
 Copiar cada `.env.example` a `.env` en su carpeta. Los `.env` están en `.gitignore`.
 

@@ -146,38 +146,60 @@ and `sparks_test`. `GET /health` follows for the healthcheck.
 - FastAPI + SQLAlchemy async + Postgres, in containers `api` and `db`.
   `web` does not depend on them.
 - Bearer token opaque saved hashed in `sessions`. Logout revokes the row.
-- `DELETE /me` sets `users.active = false`. Does not delete the row.
+- `DELETE /me` and `DELETE /users/{id}` soft-delete (`deleted_at`) and
+  revoke sessions; they also set `active = false`. Soft-deleted users
+  cannot log in or use a bearer ([020](specs/020-roles-permissions/spec.md),
+  [ADR-0028](decisions/0028-soft-delete-deleted-at.md)).
 - `must_change_password`: the login delivers token, and any other authenticated route
   responds 403 `password_change_required` until
   `POST /auth/change-password`. The base user is born with the flag set to true.
+- RBAC ([020](specs/020-roles-permissions/spec.md),
+  [ADR-0027](decisions/0027-rbac-catalogo-y-denegacion-opaca.md)): tables
+  `roles`, `permissions`, `role_permissions`; every user has `role_id`.
+  Protected routes use `require_permission(controller, method | None)`.
+  Missing grant returns the same 401 body as missing auth. Seeded roles
+  `admin` / `sales` / `customer`; register defaults to `customer`.
+  `GET /permissions` is read-only; `PUT /roles/{id}/permissions` replaces
+  grants (`change_backoffice_access` when toggling panel access).
+  Anonymous `GET /products` stays public; authenticated product reads
+  require the grant. No panel RBAC UI yet.
 - Swagger at `/docs`.
 - The audit ([012](specs/012-auditoria/spec.md), ADR-0017) is in the
   code: table `audits`, decorator opt-in `audited`, and `GET /audits` more
   `GET /audits/{audit_id}`. The account routes do not call it. The
   catalog of [013](specs/013-productos/spec.md) does: each CRUD successful
-  product, category and tag writes a row.
+  product, category and tag writes a row. Role writes are audited too.
 - The storefront calls these routes from server actions (`web/src/lib/auth/`).
   `API_MODE` does not govern the account: always uses `API_BASE_URL`. The catalog
   remains in fixtures. The layout does not read cookies; the link «My Account» checks
   `sparks_signed_in` after mounting.
 - Products, categories and tags ([013](specs/013-productos/spec.md),
-  ADR-0018) have authenticated CRUD. Photos are uploaded via a port.
+  ADR-0018) have authenticated CRUD with soft delete and permission deps
+  from 020. Photos are uploaded via a port.
   boto3 uses the bucket and keys from `api/.env`. In pytest, an in-memory double. Does not replace the contract of the storefront
-  (`web/src/lib/api/contract.ts`).
+  (`web/src/lib/api/contract.ts`). Soft-deleting a product does not purge S3.
 - The account page ([009](specs/009-cuenta-fidelidad/spec.md), ADR-0013)
   draws Level, Active Coupon and Orders with `-`, and «Your orders» empty.
   `GET /me` does not include those data. No fake data is invented.
+  `UserPublic` includes `role_id` / `role`; `/me` may include permission grants.
 
 ### Backoffice (010)
 
 Service `backoffice/`, container `sparks-backoffice`, host port
 `BACKOFFICE_PORT` (3200). Does not share the `sparks_session` cookie.
 
-- `POST /auth/login` comes from a server action towards `API_BASE_URL`.
+- Browser login posts to panel `POST /api/auth/login`, which proxies to
+  API `POST /auth/login` with `location: "backoffice"` and forwards the
+  real status (401/403/200) as JSON (ADR-0014). Without
+  `backoffice_access` the API returns 403 `forbidden` and no token.
+  Storefront login omits the field (defaults to `"store"`) so customers
+  still sign in (ADR-0027).
 - The bearer token remains in Zustand, key `sparks-backoffice-session` of
   `sessionStorage` (ADR-0014).
 - `AuthGate` waits for rehydration and applies `decideRedirect`: without token, to
   `/unauthorized`; with token, `/login` and `/` go to `/dashboard`.
+  Later API denials for missing grants still use opaque 401 and end the
+  session (ADR-0020).
 - With session, `(panel)` shows the menu, the header, the summary
   in `/dashboard` and the settings in `/ajustes`. The text is fixed
   ([011](specs/011-backoffice-cascaron/spec.md), ADR-0016). Does not call
@@ -189,6 +211,8 @@ Service `backoffice/`, container `sparks-backoffice`, host port
   The Team tab remains empty. Level, orders, spending and notes are seen
   and not saved. The browser calls to `/api/users` and that route reenvía
   to `API_BASE_URL` with the bearer. A 401 closes the session.
+  `UserPublic` Zod requires `role_id` / `role` ([020](specs/020-roles-permissions/spec.md));
+  there is no roles/permissions UI yet.
 - `/catalogo` lists the products of 013 and `/catalogo/nuevo` creates them
   ([014](specs/014-catalogo-backoffice/spec.md), ADR-0019). The layout is
   the one from the artefact (ADR-0021): filters, grid and drawer. Family and size

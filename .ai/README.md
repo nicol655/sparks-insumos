@@ -6,6 +6,8 @@ contributor and every AI agent shares the exact same context.
 
 > Agents: read this at the start of a task; update it before you finish.
 > See `.cursor/rules/10-context.mdc`.
+> Write all `.ai/` and `.cursor/` prose in **English**
+> (`.cursor/rules/50-docs-language.mdc`).
 
 ## Map
 
