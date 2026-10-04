@@ -1,0 +1,36 @@
+# Runs the backoffice on its own file. The full stack includes this from
+# docker/docker-compose.yml, which is also where `api` is defined.
+name: sparks-backoffice
+
+services:
+  backoffice:
+    container_name: sparks-backoffice
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "${BACKOFFICE_PORT:-3200}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      # AC-1 reads the root compose. This folder is not the repo root.
+      - ../docker/docker-compose.yml:/stack/docker-compose.yml:ro
+      - ../docker/.env.example:/stack/.env.example:ro
+    environment:
+      WATCHPACK_POLLING: "true"
+      API_BASE_URL: ${API_BASE_URL:-http://api:8000}
+      NEXT_PUBLIC_STORE_URL: ${NEXT_PUBLIC_STORE_URL:-http://localhost:3000}
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/login"]
+      interval: 5s
+      timeout: 10s
+      retries: 40
+      start_period: 20s
