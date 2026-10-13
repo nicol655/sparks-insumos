@@ -8,6 +8,7 @@ import { CartSummary } from "@/components/cart/cart-summary";
 import { XIcon } from "@/components/icons";
 import { Link } from "@/i18n/navigation";
 import { useCartStore } from "@/lib/cart/store";
+import { useCartMutations } from "@/lib/cart/use-cart-mutations";
 import { useResolvedCart } from "@/lib/cart/use-resolved-cart";
 import { useFocusTrap, useScrollLock } from "@/lib/ui/overlay";
 import { useUiStore } from "@/lib/ui/store";
@@ -24,6 +25,7 @@ export function CartDrawer() {
   const open = overlay === "cart";
   const panelRef = useRef<HTMLDivElement>(null);
   const { cart, ready } = useResolvedCart();
+  const { remove } = useCartMutations();
 
   useFocusTrap(panelRef, { active: open, onEscape: close });
   useScrollLock(open);
@@ -67,7 +69,7 @@ export function CartDrawer() {
 
         {resolving ? (
           <p className="text-body-m text-text-muted px-6 py-10">{t("common.loading")}</p>
-        ) : empty ? (
+        ) : empty && cart.unavailable.length === 0 ? (
           <div className="flex flex-1 flex-col gap-6 px-6 py-10">
             <p className="font-display text-[24px] italic">{t("cart.empty")}</p>
             <Link
@@ -80,12 +82,31 @@ export function CartDrawer() {
           </div>
         ) : (
           <>
-            <ul className="flex-1 overflow-y-auto px-6">{cart.lines.map((line) => (
-              <CartLineRow key={line.productId} line={line} layout="drawer" />
-            ))}</ul>
-            <div className="border-border-hairline border-t px-6 py-6">
-              <CartSummary cart={cart} showCartLink />
-            </div>
+            <ul className="flex-1 overflow-y-auto px-6">
+              {cart.lines.map((line) => (
+                <CartLineRow key={line.productId} line={line} layout="drawer" />
+              ))}
+              {cart.unavailable.map((item) => (
+                <li
+                  key={item.productId}
+                  className="border-border-hairline flex items-center justify-between gap-4 border-b py-4"
+                >
+                  <p className="text-body-s text-text-muted">{t("cart.unavailable")}</p>
+                  <button
+                    type="button"
+                    onClick={() => void remove(item.productId)}
+                    className="inline-flex min-h-11 items-center font-sans text-label tracking-[0.14em] uppercase underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                  >
+                    {t("cart.remove", { name: item.slug })}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {cart.lines.length > 0 ? (
+              <div className="border-border-hairline border-t px-6 py-6">
+                <CartSummary cart={cart} showCartLink />
+              </div>
+            ) : null}
           </>
         )}
       </div>

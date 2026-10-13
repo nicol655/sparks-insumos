@@ -1,9 +1,13 @@
 import { z } from "zod";
 
 import {
+  cartSchema,
+  cartWriteSchema,
   tokenResponseSchema,
   userPatchSchema,
   userPublicSchema,
+  type Cart,
+  type CartWrite,
   type TokenResponse,
   type UserPatch,
   type UserPublic,
@@ -11,7 +15,7 @@ import {
 import type { RegisterInput } from "@/lib/auth/validate";
 
 /**
- * HTTP boundary for account calls (spec 008).
+ * HTTP boundary for account and cart calls (specs 008 / 021).
  *
  * Failures stay as codes. The token and the request body are never logged.
  */
@@ -22,6 +26,8 @@ export type AuthFailureCode =
   | "invalid_credentials"
   | "password_change_required"
   | "email_taken"
+  | "conflict"
+  | "not_found"
   | "contract"
   | "unavailable";
 
@@ -51,6 +57,9 @@ export type AuthClient = {
   getMe(token: string): Promise<AuthResult<UserPublic>>;
   patchMe(token: string, patch: UserPatch): Promise<AuthResult<UserPublic>>;
   deleteMe(token: string): Promise<AuthResult<void>>;
+  createCart(token: string, body: CartWrite): Promise<AuthResult<Cart>>;
+  replaceCart(token: string, body: CartWrite): Promise<AuthResult<Cart>>;
+  deleteCart(token: string): Promise<AuthResult<void>>;
 };
 
 type Call = {
@@ -78,6 +87,8 @@ function failureFromStatus(status: number, payload: unknown): AuthFailure {
     return { ok: false, status, code: "password_change_required" };
   }
   if (status === 409 && code === "email_taken") return { ok: false, status, code: "email_taken" };
+  if (status === 409) return { ok: false, status, code: "conflict" };
+  if (status === 404) return { ok: false, status, code: "not_found" };
   return { ok: false, status, code: "unavailable" };
 }
 
@@ -173,6 +184,25 @@ export function createAuthClient(baseUrl: string, fetchImpl: typeof fetch = fetc
     },
     deleteMe(token) {
       return request({ path: "/me", method: "DELETE", token }, (status) => ({
+        ok: true,
+        status,
+        data: undefined,
+      }));
+    },
+    createCart(token, body) {
+      const payload = cartWriteSchema.parse(body);
+      return request({ path: "/carts", method: "POST", token, body: payload }, (status, response) =>
+        parseJson(cartSchema, status, response),
+      );
+    },
+    replaceCart(token, body) {
+      const payload = cartWriteSchema.parse(body);
+      return request({ path: "/carts", method: "PUT", token, body: payload }, (status, response) =>
+        parseJson(cartSchema, status, response),
+      );
+    },
+    deleteCart(token) {
+      return request({ path: "/carts", method: "DELETE", token }, (status) => ({
         ok: true,
         status,
         data: undefined,

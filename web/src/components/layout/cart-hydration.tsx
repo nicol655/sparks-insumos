@@ -2,21 +2,39 @@
 
 import { useEffect } from "react";
 
-import { rehydrateCart } from "@/lib/cart/store";
+import { usePathname } from "@/i18n/navigation";
+import { readSignedInFromDocument } from "@/lib/auth/session";
+import { loadSessionCart } from "@/lib/cart/browser";
+import { hydrateCartSession } from "@/lib/cart/hydrate-session";
 
 /**
- * Reads the persisted cart back after the first paint.
+ * Loads the cart after paint, after client navigations, and when the tab
+ * becomes visible again.
  *
- * The store sets `skipHydration` on purpose: the server renders an empty badge,
- * so hydrating during render would make React's first client render disagree
- * with the HTML. Doing it in an effect costs one extra frame with the counter
- * at zero and buys a mismatch-free hydration (see .ai/lessons.md).
- *
- * Renders nothing; it is mounted once in the locale layout.
+ * The locale layout keeps this mounted across login and while the shopper
+ * uses another browser/tab. Pathname + visibility re-runs ensure `/api/me`
+ * runs after sign-in and picks up cart changes made elsewhere (021 AC-8/9).
  */
 export function CartHydration() {
+  const pathname = usePathname();
+
   useEffect(() => {
-    void rehydrateCart();
+    void hydrateCartSession(loadSessionCart);
+  }, [pathname]);
+
+  useEffect(() => {
+    function refreshIfSignedIn() {
+      if (document.visibilityState !== "visible") return;
+      if (!readSignedInFromDocument()) return;
+      void hydrateCartSession(loadSessionCart);
+    }
+
+    document.addEventListener("visibilitychange", refreshIfSignedIn);
+    window.addEventListener("focus", refreshIfSignedIn);
+    return () => {
+      document.removeEventListener("visibilitychange", refreshIfSignedIn);
+      window.removeEventListener("focus", refreshIfSignedIn);
+    };
   }, []);
 
   return null;

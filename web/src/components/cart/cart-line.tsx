@@ -7,7 +7,7 @@ import { XIcon } from "@/components/icons";
 import { QuantityStepper } from "@/components/primitives/quantity-stepper";
 import { Link } from "@/i18n/navigation";
 import type { CartLine } from "@/lib/cart/store";
-import { useCartStore } from "@/lib/cart/store";
+import { useCartMutations } from "@/lib/cart/use-cart-mutations";
 import { formatPrice } from "@/lib/format/price";
 import type { Locale } from "@/i18n/locales";
 
@@ -24,15 +24,14 @@ type Props = {
 export function CartLineRow({ line, layout }: Props) {
   const t = useTranslations();
   const locale = useLocale() as Locale;
-  const setQuantity = useCartStore((state) => state.setQuantity);
-  const remove = useCartStore((state) => state.remove);
+  const { setQuantity, remove } = useCartMutations();
   const price = formatPrice(line.lineTotal, locale);
 
   const stepper = (
     <QuantityStepper
       value={line.quantity}
       max={line.product.stock}
-      onChange={(quantity) => setQuantity(line.productId, quantity)}
+      onChange={(quantity) => void setQuantity(line.productId, quantity)}
       decreaseLabel={t("cart.decrease")}
       increaseLabel={t("cart.increase")}
       valueLabel={t("cart.quantity")}
@@ -43,7 +42,7 @@ export function CartLineRow({ line, layout }: Props) {
     <button
       type="button"
       aria-label={t("cart.remove", { name: line.product.name })}
-      onClick={() => remove(line.productId)}
+      onClick={() => void remove(line.productId)}
       className="flex h-11 w-11 items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
     >
       <XIcon />

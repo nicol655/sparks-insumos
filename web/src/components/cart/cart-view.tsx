@@ -7,6 +7,7 @@ import { CartLineRow } from "@/components/cart/cart-line";
 import { BUTTON_TYPE, TOUCH_TARGET } from "@/components/primitives/button-base";
 import { Link } from "@/i18n/navigation";
 import { useCartStore } from "@/lib/cart/store";
+import { useCartMutations } from "@/lib/cart/use-cart-mutations";
 import { useResolvedCart } from "@/lib/cart/use-resolved-cart";
 
 /**
@@ -17,7 +18,7 @@ export function CartView() {
   const t = useTranslations();
   const hydrated = useCartStore((state) => state.hydrated);
   const items = useCartStore((state) => state.items);
-  const remove = useCartStore((state) => state.remove);
+  const { remove } = useCartMutations();
   const { cart, ready } = useResolvedCart();
 
   if (!hydrated || (items.length > 0 && !ready)) {
@@ -65,7 +66,7 @@ export function CartView() {
             <p className="text-body-s text-text-muted">{t("cart.unavailable")}</p>
             <button
               type="button"
-              onClick={() => remove(item.productId)}
+              onClick={() => void remove(item.productId)}
               className="inline-flex min-h-11 items-center font-sans text-label tracking-[0.14em] uppercase underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
             >
               {t("cart.remove", { name: item.slug })}

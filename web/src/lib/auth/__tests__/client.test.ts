@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createAuthClient, type AuthClient } from "@/lib/auth/client";
-import type { UserPublic } from "@/lib/auth/contract";
+import type { Cart, UserPublic } from "@/lib/auth/contract";
 import type { RegisterInput } from "@/lib/auth/validate";
 
 const BASE = "http://api.test";
@@ -15,7 +15,19 @@ const USER: UserPublic = {
   phone: "+5491168692694",
   active: true,
   must_change_password: false,
+  is_super_admin: false,
   terms_accepted_at: "2026-09-25T12:00:00Z",
+  created_at: "2026-09-25T12:00:00Z",
+  updated_at: "2026-09-25T12:00:00Z",
+  role_id: "11111111-1111-4111-8111-111111111111",
+  role: "customer",
+  cart: null,
+};
+
+const CART: Cart = {
+  id: "33333333-3333-4333-8333-333333333333",
+  user_id: USER.id,
+  items: [{ product_id: "22222222-2222-4222-8222-222222222222", quantity: 3 }],
   created_at: "2026-09-25T12:00:00Z",
   updated_at: "2026-09-25T12:00:00Z",
 };
@@ -122,6 +134,52 @@ describe("auth client", () => {
     }
     expect(JSON.parse(calls[2]?.body ?? "{}")).toEqual(patch);
     expect(calls[2]?.body).not.toContain("password");
+  });
+
+  it("creates, replaces and deletes the cart with the bearer", async () => {
+    const write = { items: [{ product_id: CART.items[0]!.product_id, quantity: 3 }] };
+    const { client, calls } = install((captured) => {
+      if (captured.method === "DELETE") return new Response(null, { status: 204 });
+      return json(captured.method === "POST" ? 201 : 200, CART);
+    });
+
+    const created = await client.createCart(TOKEN, write);
+    const replaced = await client.replaceCart(TOKEN, write);
+    const deleted = await client.deleteCart(TOKEN);
+
+    expect(created).toEqual({ ok: true, status: 201, data: CART });
+    expect(replaced).toEqual({ ok: true, status: 200, data: CART });
+    expect(deleted).toEqual({ ok: true, status: 204, data: undefined });
+    expect(calls.map((call) => [call.method, call.url])).toEqual([
+      ["POST", `${BASE}/carts`],
+      ["PUT", `${BASE}/carts`],
+      ["DELETE", `${BASE}/carts`],
+    ]);
+    expect(JSON.parse(calls[0]?.body ?? "{}")).toEqual(write);
+    expect(calls[0]?.headers.get("Authorization")).toBe(`Bearer ${TOKEN}`);
+  });
+
+  it("maps cart conflict and not_found failures", async () => {
+    const write = { items: [{ product_id: CART.items[0]!.product_id, quantity: 1 }] };
+    const conflict = install(() => json(409, { code: "conflict", detail: "Ya existe" }));
+    const missing = install(() => json(404, { code: "not_found", detail: "No existe" }));
+
+    const conflicted = await conflict.client.createCart(TOKEN, write);
+    const notFound = await missing.client.replaceCart(TOKEN, write);
+
+    expect(conflicted.ok).toBe(false);
+    if (!conflicted.ok) expect(conflicted.code).toBe("conflict");
+    expect(notFound.ok).toBe(false);
+    if (!notFound.ok) expect(notFound.code).toBe("not_found");
+  });
+
+  it("parses getMe when the user carries a cart", async () => {
+    const withCart = { ...USER, cart: CART };
+    const { client } = install(() => json(200, withCart));
+
+    const result = await client.getMe(TOKEN);
+
+    expect(result).toEqual({ ok: true, status: 200, data: withCart });
   });
 
   it("distinguishes 401, the password-change 403, email_taken and a broken success body", async () => {

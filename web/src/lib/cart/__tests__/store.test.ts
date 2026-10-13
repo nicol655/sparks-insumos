@@ -36,7 +36,7 @@ const STORAGE_KEY = "sparks.cart";
 
 beforeEach(() => {
   localStorage.clear();
-  useCartStore.setState({ items: [], hydrated: false });
+  useCartStore.setState({ items: [], cartId: null, hydrated: false, serverReady: false });
 });
 
 /** RF-5, AC-14 to AC-16. */
@@ -147,6 +147,21 @@ describe("cart persistence", () => {
 
     expect(cartCount(cart().items)).toBe(3);
     expect(cart().hydrated).toBe(true);
+  });
+
+  it("applies a server cart and marks the session ready", () => {
+    cart().applyServerCart({
+      id: "33333333-3333-4333-8333-333333333333",
+      user_id: "6b1e2c3d-4a5f-4b6c-8d7e-9f0a1b2c3d4e",
+      items: [{ product_id: king.id, quantity: 5 }],
+      created_at: "2026-09-25T12:00:00Z",
+      updated_at: "2026-09-25T12:00:00Z",
+    });
+
+    expect(cart().cartId).toBe("33333333-3333-4333-8333-333333333333");
+    expect(cart().serverReady).toBe(true);
+    expect(cart().items).toEqual([{ productId: king.id, slug: king.id, quantity: 5 }]);
+    expect(cartCount(cart().items)).toBe(5);
   });
 
   it("discards a tampered cart instead of loading it half-way", async () => {

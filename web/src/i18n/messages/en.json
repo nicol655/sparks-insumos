@@ -263,6 +263,7 @@
     "total": "Total",
     "note": "Minimum order $30,000. Shipping quoted by size and weight.",
     "added": "Added to cart",
+    "syncFailed": "We could not save your cart. Try again.",
     "remove": "Remove {name}",
     "product": "Product",
     "quantity": "Quantity",

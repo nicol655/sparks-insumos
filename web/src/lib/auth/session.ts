@@ -47,3 +47,12 @@ export function clearSession(jar: SessionCookieJar): void {
 export function readToken(jar: SessionCookieJar): string | undefined {
   return jar.get(SESSION_COOKIE)?.value;
 }
+
+/** Client-only presence check for chrome (header / cart hydration). */
+export function readSignedInFromDocument(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie.split(";").some((part) => {
+    const [name, value] = part.trim().split("=");
+    return name === SIGNED_IN_COOKIE && value === "1";
+  });
+}

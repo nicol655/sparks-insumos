@@ -5,10 +5,12 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { Locale } from "@/i18n/locales";
 import type { Product } from "@/lib/api/contract";
 import type { CatalogRepository } from "@/lib/api/repository";
+import type { Cart } from "@/lib/auth/contract";
 
 /**
  * RF-5 · cart state, persisted so it survives a reload and a language switch
- * (AC-15).
+ * (AC-15). Signed-in carts are loaded from `/me` (spec 021); guest carts stay
+ * in localStorage.
  *
  * Storage holds references only — product, slug, quantity. Prices are read
  * back from the repository every time the cart is rendered, so an old cart can
@@ -49,12 +51,17 @@ export type ResolvedCart = {
 
 type CartState = {
   items: CartItem[];
-  /** False until persisted state has been read back on the client. */
+  /** Server cart id when signed in; null when empty or guest. */
+  cartId: string | null;
+  /** False until guest localStorage has been read back on the client. */
   hydrated: boolean;
+  /** True after a signed-in `/me` cart sync (or an explicit empty apply). */
+  serverReady: boolean;
   add: (product: Product, quantity?: number) => void;
   setQuantity: (productId: string, quantity: number) => void;
   remove: (productId: string) => void;
   clear: () => void;
+  applyServerCart: (cart: Cart | null) => void;
 };
 
 const STORAGE_KEY = "sparks.cart";
@@ -63,11 +70,30 @@ function clamp(quantity: number): number {
   return Math.max(1, Math.min(Math.trunc(quantity), MAX_QUANTITY));
 }
 
+/** Map API cart lines into store references (slug = product id until resolve). */
+export function itemsFromServerCart(cart: Cart): CartItem[] {
+  return cart.items.map((item) => ({
+    productId: item.product_id,
+    slug: item.product_id,
+    quantity: clamp(item.quantity),
+  }));
+}
+
+/** Badge / count ready: guest waits for local hydrate; signed-in waits for `/me`. */
+export function cartReady(
+  signedIn: boolean,
+  state: Pick<CartState, "hydrated" | "serverReady">,
+): boolean {
+  return signedIn ? state.serverReady : state.hydrated;
+}
+
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
       items: [],
+      cartId: null,
       hydrated: false,
+      serverReady: false,
 
       add: (product, quantity = 1) =>
         set((state) => {
@@ -106,7 +132,15 @@ export const useCartStore = create<CartState>()(
       remove: (productId) =>
         set((state) => ({ items: state.items.filter((item) => item.productId !== productId) })),
 
-      clear: () => set({ items: [] }),
+      clear: () => set({ items: [], cartId: null }),
+
+      applyServerCart: (cart) =>
+        set({
+          items: cart ? itemsFromServerCart(cart) : [],
+          cartId: cart?.id ?? null,
+          serverReady: true,
+          hydrated: true,
+        }),
     }),
     {
       name: STORAGE_KEY,

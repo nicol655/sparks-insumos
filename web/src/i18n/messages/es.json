@@ -263,6 +263,7 @@
     "total": "Total",
     "note": "Mínimo de compra $30.000. El envío se cotiza según tamaño y peso.",
     "added": "Agregado al carrito",
+    "syncFailed": "No pudimos guardar el carrito. Probá de nuevo.",
     "remove": "Quitar {name}",
     "product": "Producto",
     "quantity": "Cantidad",

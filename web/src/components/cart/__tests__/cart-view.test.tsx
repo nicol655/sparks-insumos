@@ -9,6 +9,21 @@ import { useCartStore } from "@/lib/cart/store";
 import { expectNoA11yViolations } from "@/test/a11y";
 import { renderWithIntl } from "@/test/i18n";
 
+vi.mock("@/lib/cart/browser", async () => {
+  const { resolveCart } = await import("@/lib/cart/store");
+  const { createMockCatalogRepository } = await import("@/lib/api/mock-repository");
+  return {
+    resolveCartLines: (
+      items: Parameters<typeof resolveCart>[0],
+      locale: "es" | "en",
+    ) => resolveCart(items, createMockCatalogRepository(), locale),
+    deleteCart: vi.fn(async () => ({ ok: true as const })),
+    replaceCart: vi.fn(),
+    createCart: vi.fn(),
+    loadSessionCart: vi.fn(),
+  };
+});
+
 vi.mock("@/i18n/navigation", () => ({
   Link: ({
     href,

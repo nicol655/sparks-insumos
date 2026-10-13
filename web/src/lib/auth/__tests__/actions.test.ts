@@ -19,9 +19,13 @@ const USER: UserPublic = {
   phone: "+5491168692694",
   active: true,
   must_change_password: false,
+  is_super_admin: false,
   terms_accepted_at: "2026-09-25T12:00:00Z",
   created_at: "2026-09-25T12:00:00Z",
   updated_at: "2026-09-25T12:00:00Z",
+  role_id: "11111111-1111-4111-8111-111111111111",
+  role: "customer",
+  cart: null,
 };
 const TOKEN_BODY: TokenResponse = {
   access_token: TOKEN,
@@ -72,6 +76,9 @@ function client(partial: Partial<AuthClient> = {}): AuthClient {
     getMe: vi.fn(fail),
     patchMe: vi.fn(fail),
     deleteMe: vi.fn(fail),
+    createCart: vi.fn(fail),
+    replaceCart: vi.fn(fail),
+    deleteCart: vi.fn(fail),
     ...partial,
   };
 }
@@ -102,8 +109,10 @@ async function pathOf(run: () => Promise<unknown>): Promise<string> {
 
 describe("auth actions", () => {
   it("stores the session and redirects to a safe next path after login", async () => {
+    const getMe = vi.fn(async () => ({ ok: true as const, status: 200, data: USER }));
     const auth = client({
       login: vi.fn(async () => ({ ok: true as const, status: 200, data: TOKEN_BODY })),
+      getMe,
     });
     const { actions, cookies } = setup(auth);
 
@@ -112,6 +121,7 @@ describe("auth actions", () => {
     );
     expect(cookies.get(SESSION_COOKIE)?.value).toBe(TOKEN);
     expect(cookies.get(SIGNED_IN_COOKIE)?.value).toBe("1");
+    expect(getMe).toHaveBeenCalledWith(TOKEN);
   });
 
   it("keeps the session when the token asks for a password change", async () => {
@@ -121,6 +131,7 @@ describe("auth actions", () => {
         status: 200,
         data: { ...TOKEN_BODY, must_change_password: true },
       })),
+      getMe: vi.fn(async () => ({ ok: true as const, status: 200, data: USER })),
     });
     const { actions, cookies } = setup(auth);
 
@@ -153,11 +164,30 @@ describe("auth actions", () => {
 
     const hostile = client({
       login: vi.fn(async () => ({ ok: true as const, status: 200, data: TOKEN_BODY })),
+      getMe: vi.fn(async () => ({ ok: true as const, status: 200, data: USER })),
     });
     const { actions: signedIn } = setup(hostile);
     await expect(pathOf(() => signedIn.login({ ...VALID, next: "https://evil.example" }))).resolves.toBe(
       "/es/catalogo",
     );
+  });
+
+  it("clears the session when post-login /me returns 401", async () => {
+    const auth = client({
+      login: vi.fn(async () => ({ ok: true as const, status: 200, data: TOKEN_BODY })),
+      getMe: vi.fn(async () => ({
+        ok: false as const,
+        status: 401,
+        code: "invalid_credentials" as const,
+      })),
+    });
+    const { actions, cookies } = setup(auth);
+
+    await expect(actions.login({ ...VALID, next: null })).resolves.toEqual({
+      ok: false,
+      code: "unavailable",
+    });
+    expect(cookies.values.size).toBe(0);
   });
 
   it("does not call the API when registration fails validation", async () => {
@@ -173,15 +203,18 @@ describe("auth actions", () => {
   });
 
   it("signs in after a 201 and opens the account page", async () => {
+    const getMe = vi.fn(async () => ({ ok: true as const, status: 200, data: USER }));
     const auth = client({
       register: vi.fn(async () => ({ ok: true as const, status: 201, data: USER })),
       login: vi.fn(async () => ({ ok: true as const, status: 200, data: TOKEN_BODY })),
+      getMe,
     });
     const { actions, cookies } = setup(auth);
 
     await expect(pathOf(() => actions.register(VALID))).resolves.toBe("/es/cuenta");
     expect(cookies.get(SESSION_COOKIE)?.value).toBe(TOKEN);
     expect(auth.login).toHaveBeenCalledWith({ email: VALID.email, password: VALID.password });
+    expect(getMe).toHaveBeenCalledWith(TOKEN);
   });
 
   it("sends the shopper to sign in when the courtesy login fails, without a cookie", async () => {
@@ -341,5 +374,69 @@ describe("auth actions", () => {
 
     await expect(pathOf(() => actions.loadAccount())).resolves.toBe("/es/ingresar?next=%2Fes%2Fcuenta");
     expect(cookies.values.size).toBe(0);
+  });
+
+  it("loads the session cart for chrome hydration", async () => {
+    const withCart = {
+      ...USER,
+      cart: {
+        id: "33333333-3333-4333-8333-333333333333",
+        user_id: USER.id,
+        items: [{ product_id: "22222222-2222-4222-8222-222222222222", quantity: 4 }],
+        created_at: "2026-09-25T12:00:00Z",
+        updated_at: "2026-09-25T12:00:00Z",
+      },
+    };
+    const auth = client({
+      getMe: vi.fn(async () => ({ ok: true as const, status: 200, data: withCart })),
+    });
+    const { actions, cookies } = setup(auth);
+    cookies.set(SESSION_COOKIE, TOKEN, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 1,
+      secure: false,
+    });
+
+    await expect(actions.loadSessionCart()).resolves.toEqual({
+      ok: true,
+      signedIn: true,
+      cart: withCart.cart,
+    });
+
+    const guest = setup(client());
+    await expect(guest.actions.loadSessionCart()).resolves.toEqual({ ok: true, signedIn: false });
+  });
+
+  it("creates and replaces the cart through the session token", async () => {
+    const cart = {
+      id: "33333333-3333-4333-8333-333333333333",
+      user_id: USER.id,
+      items: [{ product_id: "22222222-2222-4222-8222-222222222222", quantity: 2 }],
+      created_at: "2026-09-25T12:00:00Z",
+      updated_at: "2026-09-25T12:00:00Z",
+    };
+    const body = { items: cart.items };
+    const auth = client({
+      createCart: vi.fn(async () => ({ ok: true as const, status: 201, data: cart })),
+      replaceCart: vi.fn(async () => ({ ok: true as const, status: 200, data: cart })),
+      deleteCart: vi.fn(async () => ({ ok: true as const, status: 204, data: undefined })),
+    });
+    const { actions, cookies } = setup(auth);
+    cookies.set(SESSION_COOKIE, TOKEN, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 1,
+      secure: false,
+    });
+
+    await expect(actions.createCart(body)).resolves.toEqual({ ok: true, cart });
+    await expect(actions.replaceCart(body)).resolves.toEqual({ ok: true, cart });
+    await expect(actions.deleteCart()).resolves.toEqual({ ok: true });
+    expect(auth.createCart).toHaveBeenCalledWith(TOKEN, body);
+    expect(auth.replaceCart).toHaveBeenCalledWith(TOKEN, body);
+    expect(auth.deleteCart).toHaveBeenCalledWith(TOKEN);
   });
 });

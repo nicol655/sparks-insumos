@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 
 import { MenuGlyph, ShoppingBagIcon } from "@/components/icons";
@@ -10,7 +11,8 @@ import { Wordmark } from "@/components/layout/wordmark";
 import { SearchTrigger } from "@/components/search/search-trigger";
 import { Link } from "@/i18n/navigation";
 
-import { cartCount, useCartStore } from "@/lib/cart/store";
+import { readSignedInFromDocument } from "@/lib/auth/session";
+import { cartCount, cartReady, useCartStore } from "@/lib/cart/store";
 import { useUiStore } from "@/lib/ui/store";
 
 /**
@@ -27,10 +29,19 @@ const HEADER_LINK =
   "hover:text-ink/70 " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
 
+function signedOutSnapshot() {
+  return false;
+}
+
+function subscribeSignedIn() {
+  return () => undefined;
+}
+
 export function Header() {
   const t = useTranslations();
-  const hydrated = useCartStore((state) => state.hydrated);
-  const count = useCartStore((state) => (state.hydrated ? cartCount(state.items) : 0));
+  const signedIn = useSyncExternalStore(subscribeSignedIn, readSignedInFromDocument, signedOutSnapshot);
+  const ready = useCartStore((state) => cartReady(signedIn, state));
+  const count = useCartStore((state) => (cartReady(signedIn, state) ? cartCount(state.items) : 0));
   const overlay = useUiStore((state) => state.overlay);
   const open = useUiStore((state) => state.open);
   const toggle = useUiStore((state) => state.toggle);
@@ -87,7 +98,7 @@ export function Header() {
           <button
             type="button"
             id="header-cart"
-            data-hydrated={hydrated ? "true" : "false"}
+            data-hydrated={ready ? "true" : "false"}
             aria-expanded={overlay === "cart"}
             aria-controls="cart-drawer"
             aria-label={t("header.cartCount", { count })}
@@ -101,7 +112,7 @@ export function Header() {
           >
             <ShoppingBagIcon className="h-[18px] w-[18px]" />
             <span className="hidden lg:inline">{t("header.cart")}</span>
-            {hydrated ? (
+            {ready ? (
               <span className="font-mono text-mono-meta tracking-[0.12em]">{count}</span>
             ) : null}
           </button>

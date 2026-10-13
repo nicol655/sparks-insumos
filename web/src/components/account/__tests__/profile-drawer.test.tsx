@@ -17,9 +17,13 @@ const USER: UserPublic = {
   phone: "+5491168692694",
   active: true,
   must_change_password: false,
+  is_super_admin: false,
   terms_accepted_at: "2026-09-25T12:00:00Z",
   created_at: "2026-09-25T12:00:00Z",
   updated_at: "2026-09-25T12:00:00Z",
+  role_id: "11111111-1111-4111-8111-111111111111",
+  role: "customer",
+  cart: null,
 };
 
 function view(save: SaveProfile = vi.fn()) {

@@ -46,7 +46,8 @@ vi.mock("@/i18n/navigation", () => ({
 beforeEach(() => {
   replace.mockReset();
   useUiStore.setState({ overlay: null, toasts: [] });
-  useCartStore.setState({ items: [], hydrated: true });
+  useCartStore.setState({ items: [], cartId: null, hydrated: true, serverReady: false });
+  document.cookie = "sparks_signed_in=; Max-Age=0";
 });
 
 describe("Wordmark", () => {
@@ -120,6 +121,7 @@ describe("Header", () => {
     useCartStore.setState({
       items: [{ productId: "prd-001", slug: "bharara-king", quantity: 3 }],
       hydrated: true,
+      serverReady: false,
     });
 
     renderWithIntl(<Header />);
@@ -139,12 +141,41 @@ describe("Header", () => {
     useCartStore.setState({
       items: [{ productId: "prd-001", slug: "bharara-king", quantity: 3 }],
       hydrated: false,
+      serverReady: false,
     });
 
     renderWithIntl(<Header />);
 
     expect(screen.getByRole("button", { name: "Carrito vacío" })).toBeInTheDocument();
     expect(screen.queryByText("3")).not.toBeInTheDocument();
+  });
+
+  it("keeps the badge at zero until /me syncs for a signed-in session", () => {
+    document.cookie = "sparks_signed_in=1";
+    useCartStore.setState({
+      items: [{ productId: "prd-001", slug: "bharara-king", quantity: 5 }],
+      hydrated: false,
+      serverReady: false,
+    });
+
+    renderWithIntl(<Header />);
+
+    expect(screen.getByRole("button", { name: "Carrito vacío" })).toBeInTheDocument();
+    expect(screen.queryByText("5")).not.toBeInTheDocument();
+  });
+
+  it("shows total units after the signed-in cart is ready", () => {
+    document.cookie = "sparks_signed_in=1";
+    useCartStore.setState({
+      items: [{ productId: "prd-001", slug: "bharara-king", quantity: 5 }],
+      hydrated: true,
+      serverReady: true,
+    });
+
+    renderWithIntl(<Header />);
+
+    expect(screen.getByRole("button", { name: "5 productos en el carrito" })).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
   });
 
   it("tells assistive technology when the mobile menu is open", () => {
