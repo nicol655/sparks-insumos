@@ -32,6 +32,7 @@ function account(overrides: Partial<Account> = {}): Account {
     phone: "+5491168692694",
     active: true,
     must_change_password: false,
+    is_super_admin: false,
     terms_accepted_at: stamp,
     created_at: stamp,
     updated_at: stamp,
@@ -86,6 +87,7 @@ describe("users screen", () => {
     expect(screen.queryByText("Martina Álvarez")).not.toBeInTheDocument();
     expect(screen.queryByText("Permisos por rol")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Clientes/ })).toHaveClass("cursor-pointer");
+    expect(screen.getByRole("button", { name: /Roles/ })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Equipo/ }));
     expect(screen.getByText(EMPTY_TEAM)).toBeInTheDocument();

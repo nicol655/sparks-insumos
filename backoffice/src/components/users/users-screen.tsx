@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { PageHeading } from "@/components/shell/page-heading";
+import { RolesPanel } from "@/components/users/roles-panel";
 import { UserDrawer } from "@/components/users/user-drawer";
 import { endSession } from "@/lib/auth/end-session";
 import { useSessionStore } from "@/lib/auth/session-store";
@@ -73,10 +74,12 @@ export function UsersScreen({ client }: { client?: UsersClient }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [tab, setTab] = useState<"clients" | "team">("clients");
+  const [tab, setTab] = useState<"clients" | "team" | "roles">("clients");
   const [query, setQuery] = useState("");
   const [chip, setChip] = useState<ChipId>("all");
   const [creating, setCreating] = useState(false);
+  const [creatingRole, setCreatingRole] = useState(false);
+  const [rolesCount, setRolesCount] = useState(0);
   const [editing, setEditing] = useState<Account | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
@@ -174,6 +177,17 @@ export function UsersScreen({ client }: { client?: UsersClient }) {
             >
               Nuevo cliente
             </button>
+          ) : tab === "roles" ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                openerRef.current = event.currentTarget;
+                setCreatingRole(true);
+              }}
+              className={`${pointer} bg-ink text-canvas hover:bg-accent-gold px-[22px] py-3.5 text-[11px] tracking-[0.16em] uppercase`}
+            >
+              Nuevo rol
+            </button>
           ) : null
         }
       />
@@ -195,6 +209,7 @@ export function UsersScreen({ client }: { client?: UsersClient }) {
               [
                 ["clients", "Clientes", String(accounts.length)],
                 ["team", "Equipo", "0"],
+                ["roles", "Roles", String(rolesCount)],
               ] as const
             ).map(([id, label, count]) => {
               const on = tab === id;
@@ -216,6 +231,12 @@ export function UsersScreen({ client }: { client?: UsersClient }) {
           </div>
           {tab === "team" ? (
             <p className="text-text-meta px-4 py-[50px] text-center font-display text-[22px] italic">{EMPTY_TEAM}</p>
+          ) : tab === "roles" ? (
+            <RolesPanel
+              creating={creatingRole}
+              onCreatingChange={setCreatingRole}
+              onCount={setRolesCount}
+            />
           ) : (
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-center gap-3">

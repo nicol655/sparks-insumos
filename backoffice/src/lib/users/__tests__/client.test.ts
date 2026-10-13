@@ -14,6 +14,7 @@ const account = {
   phone: "+5491168692694",
   active: true,
   must_change_password: false,
+  is_super_admin: false,
   terms_accepted_at: stamp,
   created_at: stamp,
   updated_at: stamp,
