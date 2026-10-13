@@ -46,6 +46,7 @@ async def test_register_creates_a_user_without_a_session_or_password(
     assert body["phone"] == "+5491168692694"
     assert body["active"] is True
     assert body["must_change_password"] is False
+    assert body["is_super_admin"] is False
     assert body["role"] == "customer"
     assert "role_id" in body
     assert "password" not in body

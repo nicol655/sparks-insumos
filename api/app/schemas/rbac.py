@@ -36,6 +36,7 @@ class RoleCreate(BaseModel):
 
     slug: str
     name: str
+    permission_ids: list[UUID] = Field(default_factory=list)
 
     @field_validator("slug")
     @classmethod
@@ -91,3 +92,16 @@ class RolePublic(BaseModel):
     created_at: datetime
     updated_at: datetime
     permission_ids: list[UUID] = Field(default_factory=list)
+
+
+class RoleStatisticsPublic(BaseModel):
+    id: UUID
+    slug: str
+    name: str
+    created_at: datetime
+    updated_at: datetime
+    permission_ids: list[UUID] = Field(default_factory=list)
+    permissions_count: int
+    users_count: int
+    locked: bool
+    has_backoffice_access: bool

@@ -99,6 +99,8 @@ async def test_list_users_includes_inactive_rows_without_the_hash() -> None:
     admin = next(row for row in body if row["email"] == "admin@sparksinsumos.com")
     assert luis["active"] is False
     assert admin["active"] is True
+    assert admin["is_super_admin"] is True
+    assert luis["is_super_admin"] is False
     assert "password" not in luis
     assert "password_hash" not in luis
     assert _PASSWORD not in response.text
@@ -152,6 +154,7 @@ async def test_create_user_returns_the_public_row_and_audits_without_the_passwor
     assert body["phone"] == "+5491111111111"
     assert body["active"] is True
     assert body["must_change_password"] is False
+    assert body["is_super_admin"] is False
     assert "access_token" not in body
     assert _PASSWORD not in response.text
     async with db_engine.connect() as connection:
@@ -165,6 +168,28 @@ async def test_create_user_returns_the_public_row_and_audits_without_the_passwor
         ).scalar_one()
     assert _PASSWORD not in payload
     assert '"password"' not in payload
+
+
+async def test_create_and_patch_reject_is_super_admin() -> None:
+    async with await _client() as client:
+        headers = await _headers(client)
+        created = await client.post(
+            "/users",
+            headers=headers,
+            json={**_create_body(), "is_super_admin": True},
+        )
+        assert created.status_code == 422
+        ok = await client.post("/users", headers=headers, json=_create_body())
+        assert ok.status_code == 201
+        patched = await client.patch(
+            f"/users/{ok.json()['id']}",
+            headers=headers,
+            json={"is_super_admin": True},
+        )
+        assert patched.status_code == 422
+        current = await client.get(f"/users/{ok.json()['id']}", headers=headers)
+        assert current.status_code == 200
+        assert current.json()["is_super_admin"] is False
 
 
 async def test_patch_rejects_an_email_that_belongs_to_someone_else(db_engine: AsyncEngine) -> None:

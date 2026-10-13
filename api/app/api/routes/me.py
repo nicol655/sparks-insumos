@@ -18,6 +18,7 @@ from app.schemas.auth import (
     UserReplace,
     to_user_public,
 )
+from app.schemas.cart import load_user_cart_public
 
 router = APIRouter(tags=["me"])
 
@@ -40,7 +41,8 @@ async def _with_permissions(session: AsyncSession, user: User) -> UserPublic:
         PermissionGrantPublic(controller=controller, method=method)
         for controller, method in sorted(grants, key=lambda item: (item[0], item[1] or ""))
     ]
-    return to_user_public(user, permissions=permissions)
+    cart = await load_user_cart_public(session, user.id)
+    return to_user_public(user, permissions=permissions, cart=cart)
 
 
 async def _save_profile(user: User, session: AsyncSession, changes: dict[str, str]) -> UserPublic:

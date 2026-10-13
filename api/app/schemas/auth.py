@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.models.user import User
+from app.schemas.cart import CartPublic
 from app.security.identifiers import IdentifierRejected, normalize_email, normalize_phone
 from app.security.passwords import PasswordRejected, validate_password_pair
 
@@ -272,18 +273,21 @@ class UserPublic(BaseModel):
     phone: str
     active: bool
     must_change_password: bool
+    is_super_admin: bool
     terms_accepted_at: datetime
     created_at: datetime
     updated_at: datetime
     role_id: UUID
     role: str
     permissions: list[PermissionGrantPublic] | None = None
+    cart: CartPublic | None = None
 
 
 def to_user_public(
     user: User,
     *,
     permissions: list[PermissionGrantPublic] | None = None,
+    cart: CartPublic | None = None,
 ) -> UserPublic:
     return UserPublic(
         id=user.id,
@@ -293,10 +297,12 @@ def to_user_public(
         phone=user.phone,
         active=user.active,
         must_change_password=user.must_change_password,
+        is_super_admin=user.is_super_admin,
         terms_accepted_at=user.terms_accepted_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
         role_id=user.role_id,
         role=user.assigned_role.slug,
         permissions=permissions,
+        cart=cart,
     )

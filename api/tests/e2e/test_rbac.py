@@ -80,7 +80,7 @@ async def test_admin_lists_and_retrieves_permissions(db_engine: AsyncEngine) -> 
         listed = await client.get("/permissions", headers=headers)
         assert listed.status_code == 200
         rows = listed.json()
-        assert len(rows) == 37
+        assert len(rows) == 42
         assert set(rows[0]) == _FIELDS
         assert any(
             row["controller"] == "backoffice_access" and row["method"] is None for row in rows
@@ -88,6 +88,7 @@ async def test_admin_lists_and_retrieves_permissions(db_engine: AsyncEngine) -> 
         assert any(
             row["controller"] == "products" and row["method"] == "create" for row in rows
         )
+        assert any(row["controller"] == "cart" and row["method"] == "list" for row in rows)
 
         detail = await client.get(f"/permissions/{rows[0]['id']}", headers=headers)
         missing = await client.get(f"/permissions/{uuid4()}", headers=headers)
@@ -330,3 +331,39 @@ async def test_put_role_permissions_validates_and_gates_backoffice(
                 json={"permission_ids": original_ids},
             )
             assert restored.status_code == 200
+
+
+async def test_cart_permission_matrix_is_seeded(db_engine: AsyncEngine) -> None:
+    expected = {
+        "admin": {"edit", "delete", "list"},
+        "sales": {"create", "edit", "delete", "retrieve", "list"},
+        "customer": {"create", "edit", "delete", "retrieve"},
+    }
+    async with db_engine.connect() as connection:
+        rows = await connection.execute(
+            text(
+                """
+                SELECT r.slug, p.method
+                FROM role_permissions rp
+                JOIN roles r ON r.id = rp.role_id
+                JOIN permissions p ON p.id = rp.permission_id
+                WHERE p.controller = 'cart' AND p.deleted_at IS NULL
+                """
+            )
+        )
+        grants: dict[str, set[str]] = {slug: set() for slug in expected}
+        for slug, method in rows.all():
+            grants[slug].add(method)
+
+    assert grants == expected
+
+    async with await _client() as client:
+        headers = await _ready_admin(client)
+        catalog = await client.get("/permissions", headers=headers)
+        assert catalog.status_code == 200
+        cart_methods = {
+            row["method"]
+            for row in catalog.json()
+            if row["controller"] == "cart"
+        }
+        assert cart_methods == {"create", "edit", "delete", "retrieve", "list"}

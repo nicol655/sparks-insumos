@@ -51,6 +51,7 @@ async def test_get_me_returns_the_public_user() -> None:
     assert body["phone"] == "+5491168692694"
     assert body["active"] is True
     assert body["must_change_password"] is False
+    assert body["is_super_admin"] is False
     assert body["role"] == "customer"
     assert body["role_id"]
     assert isinstance(body["permissions"], list)
@@ -61,6 +62,7 @@ async def test_get_me_returns_the_public_user() -> None:
     assert not any(
         grant["controller"] == "backoffice_access" for grant in body["permissions"]
     )
+    assert body["cart"] is None
     assert "password" not in body
     assert "password_hash" not in body
     assert "Sparks1!" not in response.text

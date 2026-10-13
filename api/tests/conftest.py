@@ -41,6 +41,8 @@ def ensure_migrated() -> None:
 
 async def _reset(engine: AsyncEngine) -> None:
     async with engine.begin() as connection:
+        await connection.execute(text("DELETE FROM cart_items"))
+        await connection.execute(text("DELETE FROM carts"))
         await connection.execute(text("DELETE FROM product_tags"))
         await connection.execute(text("DELETE FROM products"))
         await connection.execute(text("DELETE FROM tags"))

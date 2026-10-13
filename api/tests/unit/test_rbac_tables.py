@@ -12,7 +12,11 @@ _CONTROLLERS = (
     "products",
     "product-categories",
     "tags",
+    "cart",
 )
+# Admin has every method on pre-cart controllers + method-less flags,
+# but only edit/delete/list on cart (create/retrieve denied).
+_ADMIN_DENIED_CART = 2
 
 
 async def test_roles_permissions_and_grants_are_seeded(db_engine: AsyncEngine) -> None:
@@ -39,7 +43,7 @@ async def test_roles_permissions_and_grants_are_seeded(db_engine: AsyncEngine) -
                 """
             )
         )
-        assert admin_grants == permission_count
+        assert admin_grants == permission_count - _ADMIN_DENIED_CART
 
         sales_user_delete = await connection.scalar(
             text(
@@ -107,6 +111,27 @@ async def test_roles_permissions_and_grants_are_seeded(db_engine: AsyncEngine) -
             )
         )
         assert admin_role == "admin"
+
+        admin_super = await connection.scalar(
+            text(
+                """
+                SELECT is_super_admin FROM users
+                WHERE email = 'admin@sparksinsumos.com'
+                """
+            )
+        )
+        assert admin_super is True
+
+        other_supers = await connection.scalar(
+            text(
+                """
+                SELECT COUNT(*) FROM users
+                WHERE is_super_admin = true
+                  AND email <> 'admin@sparksinsumos.com'
+                """
+            )
+        )
+        assert other_supers == 0
 
         for table in (
             "users",
