@@ -313,6 +313,31 @@ trozo.
 
 ## State
 
+### Client catalogue fetches cannot use `API_BASE_URL=http://api:8000`
+
+RSC and server actions reach the API on the Compose network. The browser
+cannot resolve `api` (and CORS would block `localhost:8000` anyway).
+Cart line joins and similar client work must go through a server action
+(or stay on `API_MODE=mock`). Symptom: badge count rises after Agregar,
+drawer / `/carrito` stay empty.
+
+### Signed-in cart must re-fetch `/me` on focus
+
+An already-open storefront tab keeps Zustand `serverReady` and used to
+skip `/api/me`. Cart changes from another browser never appeared. Always
+GET `/me` when signed in, and re-run hydration on `visibilitychange` /
+`focus`. Guest carts stay per-browser localStorage only.
+
+`CartHydration` lives in the locale layout, so it stays mounted across
+`/ingresar` → catalog. A mount-only `useEffect` hydrates as guest and
+never calls `/api/me` after login. Depend on `usePathname()` so the
+effect runs again once `sparks_signed_in` is set (021 AC-8).
+
+Cart mutate / resolve / session hydrate call same-origin route handlers
+that forward to `API_BASE_URL` and return `application/json` with the
+upstream status. In DevTools filter `cart` or `me` — Preview is real
+JSON, not RSC Flight. Guest Agregar still has no network (localStorage).
+
 ### `persist` of Zustand writes in each `setState`
 
 A test that did `setState({items: []})` to «simulate a reload» cleared `localStorage` before

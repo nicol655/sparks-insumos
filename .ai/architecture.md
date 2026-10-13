@@ -16,7 +16,7 @@ The central bet remains: the frontend is built **against a contract, not against
 | Design tokens | `web/src/styles/theme.css` | Unique source of colors, typography, spacing and breakpoints. The palette and Tailwind radii are **replaced**, not extended |
 | Data contract | `web/src/lib/api/contract.ts` | Zod schemas from which types are **inferred**. This is what `api/` must comply with |
 | Repository | `web/src/lib/api/` | `CatalogRepository` with two implementations: `mock-repository` (fixtures) and `http-repository` (maps the public JSON of 017 to the contract). `API_MODE` chooses |
-| State | `web/src/lib/cart/`, `web/src/lib/ui/` | Persisted cart (only references) and overlays. Zustand |
+| State | `web/src/lib/cart/`, `web/src/lib/ui/` | Cart references + overlays. Zustand. Guest: `localStorage`. Signed-in: server cart via `/me` and `/carts` ([021](specs/021-persistent-cart/spec.md), [ADR-0029](decisions/0029-carrito-persistente-servidor.md)) |
 | i18n | `web/src/i18n/`, `web/src/proxy.ts` | Locales, translated routes, dictionaries |
 | UI | `web/src/components/`, `web/src/app/[locale]/` | Never call `fetch` or read `src/fixtures`
 directly: pass through the repository |
@@ -83,14 +83,28 @@ Gallery and purchase are client-side (thumbnails, stepper); the rest is RSC.
 The list lives in `catalogo/(grid)/` so that its `loading.tsx` does not
 wrap the product detail.
 
-### Cart
+### Cart ([021](specs/021-persistent-cart/spec.md))
 
-Adding (`useAddToCart`) saves a reference, opens the `cart` overlay and enqueues a toast.
-`resolveCart()` unites those references with the live product in the client (`useResolvedCart`):
-recalculates prices, cuts quantities to stock and reports what is sold out. The drawer
-(`cart-drawer.tsx`, 420px, z-101) and `/carrito` (`CartView` + `CartAside`) read the same store; the header counter waits for `hydrated` to not adjust the server HTML
-of the page. The page (005) paints the aside of the prototype; the drawer keeps
-the compact summary. The `wa.me` of order does not build under $30,000.
+**API:** one cart per user (`carts.user_id` unique) with `cart_items`
+(product + quantity). Routes under `/carts`: list (admin/sales),
+POST/PUT/DELETE for the current user’s cart (`require_permission` on
+`cart`). Mutations are audited. Clear is a **hard** delete (no
+`deleted_at`; [ADR-0029](decisions/0029-carrito-persistente-servidor.md)).
+`GET /me` embeds `cart` or `null`. Empty PUT body is 422 — last line or
+clear must DELETE.
+
+**Storefront:** guest browsing still uses Zustand + `localStorage`.
+When signed in, `GET /me` is the source of truth (login and
+`cart-hydration`); guest lines are not merged. Header badge stays `0`
+until `/me` (or guest hydrate) is ready, then shows **units** (sum of
+quantities). Agregar → POST if no cart else PUT; quantity / remove →
+PUT; last remove or clear → DELETE — via server actions
+(`useAddToCart`, `useCartMutations`), never browser `fetch` to `api/`.
+
+`resolveCart()` / `useResolvedCart` still join store references to live
+catalog prices and stock. Drawer (`cart-drawer.tsx`) and `/carrito`
+(`CartView` + `CartAside`) share the store. WhatsApp checkout still
+requires the $30,000 floor.
 
 ### Hero and home (003 / 006)
 
@@ -162,7 +176,12 @@ and `sparks_test`. `GET /health` follows for the healthcheck.
   `GET /permissions` is read-only; `PUT /roles/{id}/permissions` replaces
   grants (`change_backoffice_access` when toggling panel access).
   Anonymous `GET /products` stays public; authenticated product reads
-  require the grant. No panel RBAC UI yet.
+  require the grant. Seeded slug `admin` is locked against PATCH /
+  DELETE / permission replace (**403**, [ADR-0030](decisions/0030-admin-role-locked-and-super-admin.md)).
+  `GET /roles/statistics` aggregates roles for the panel table.
+  `users.is_super_admin` is read-only on `UserPublic` (bootstrap user
+  only); not used for authorization yet
+  ([022](specs/022-role-management/spec.md)).
 - Swagger at `/docs`.
 - The audit ([012](specs/012-auditoria/spec.md), ADR-0017) is in the
   code: table `audits`, decorator opt-in `audited`, and `GET /audits` more
@@ -181,7 +200,10 @@ and `sparks_test`. `GET /health` follows for the healthcheck.
 - The account page ([009](specs/009-cuenta-fidelidad/spec.md), ADR-0013)
   draws Level, Active Coupon and Orders with `-`, and «Your orders» empty.
   `GET /me` does not include those data. No fake data is invented.
-  `UserPublic` includes `role_id` / `role`; `/me` may include permission grants.
+  `UserPublic` includes `role_id` / `role` and nullable `cart`
+  ([021](specs/021-persistent-cart/spec.md)); `/me` may include permission grants.
+  Cart POST/PUT/DELETE are audited; soft-delete default does not apply to carts
+  (hard delete, ADR-0029).
 
 ### Backoffice (010)
 
@@ -208,11 +230,16 @@ Service `backoffice/`, container `sparks-backoffice`, host port
   and edición
   ([019](specs/019-usuarios-backoffice/spec.md),
   [ADR-0026](decisions/0026-usuarios-del-panel-sin-datos-inventados.md)).
-  The Team tab remains empty. Level, orders, spending and notes are seen
-  and not saved. The browser calls to `/api/users` and that route reenvía
-  to `API_BASE_URL` with the bearer. A 401 closes the session.
-  `UserPublic` Zod requires `role_id` / `role` ([020](specs/020-roles-permissions/spec.md));
-  there is no roles/permissions UI yet.
+  The Team tab remains empty. The Roles tab lists statistics from
+  `GET /roles/statistics`, shows the permissions matrix from
+  `GET /permissions`, and opens a drawer for create / edit / duplicate
+  ([022](specs/022-role-management/spec.md)). Level, orders, spending and notes are seen
+  and not saved. The browser calls to `/api/users`, `/api/roles`, and
+  `/api/permissions`; those routes forward to `API_BASE_URL` with the
+  bearer. A 401 closes the session.
+  `UserPublic` Zod requires `role_id` / `role` / `is_super_admin`
+  ([020](specs/020-roles-permissions/spec.md),
+  [022](specs/022-role-management/spec.md)).
 - `/catalogo` lists the products of 013 and `/catalogo/nuevo` creates them
   ([014](specs/014-catalogo-backoffice/spec.md), ADR-0019). The layout is
   the one from the artefact (ADR-0021): filters, grid and drawer. Family and size

@@ -1,6 +1,27 @@
 # Progress
 
-## Current · 2026-10-02 — Panel login uses JSON proxy (not server action)
+## Current · 2026-10-06 — 022 role management implemented
+
+[022](specs/022-role-management/): **done** (T397–T408). Locked `admin`
+role (403), `users.is_super_admin` (bootstrap only), `GET /roles/statistics`,
+Usuarios → Roles tab (table, matrix, create/edit/duplicate). ADR-0030.
+API pytest 137; ruff clean; backoffice verify green. Web contract only
+synced for `is_super_admin`.
+
+Next: other product work, or visual polish of Roles against the artifact
+if needed.
+
+## Previous · 2026-10-05 — signed-in cart re-fetches on focus
+
+Signed-in hydration always calls `/api/me` (no `serverReady` skip) and
+`CartHydration` re-runs on tab focus/visibility so another browser’s
+cart shows up. Guest carts remain localStorage-only per browser.
+
+Next was: panel RBAC UI (now 022).
+
+
+
+## Previous · 2026-10-02 — Panel login uses JSON proxy (not server action)
 
 Backoffice login was a Next server action → Network showed **200** +
 Flight (`0:{…}`) even for bad credentials. Now `POST /api/auth/login`
